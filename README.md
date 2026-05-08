@@ -4,6 +4,7 @@ A full-featured Django project with AI-powered adaptive learning, auto evaluatio
 
 ---
 
+
 ## 📋 All 12 Database Tables Implemented
 
 | # | Table | Description |
@@ -187,6 +188,40 @@ Visit: **http://127.0.0.1:8000/**
 - **AI chatbot** with typing indicator and markdown support
 - **Progress bars** with glow effects
 - **Toast notifications** with auto-dismiss
+
+---
+
+# 📸 Screenshots
+
+## 🏠 Landing Page
+<img width="1920" height="922" alt="image" src="https://github.com/user-attachments/assets/775b2bab-4355-4c02-9bec-1effcdec1a70" /> <br>
+<img width="1918" height="920" alt="image" src="https://github.com/user-attachments/assets/ce13ab5f-6be3-4c99-944a-42fe1b4d2001" />
+
+---
+
+## 📚 Courses
+
+<img width="1920" height="920" alt="image" src="https://github.com/user-attachments/assets/88d3d07a-852a-447f-9f13-271b80c766c5" />
+
+---
+
+## 🎓 Student Dashboard
+
+<img width="1920" height="917" alt="image" src="https://github.com/user-attachments/assets/c44cb2e9-80c5-4c96-9ad1-76f6e361b993" />
+
+
+---
+
+## 📝 Exam System
+
+<img width="1920" height="917" alt="image" src="https://github.com/user-attachments/assets/08540cf7-0fa8-432d-ae7e-18667e5e1f55" />
+
+
+---
+
+## 🛡️ Admin Dashboard
+
+<img width="1902" height="916" alt="image" src="https://github.com/user-attachments/assets/e78bffbf-a859-43e1-8cb5-f0a77d0910c8" />
 
 ---
 
