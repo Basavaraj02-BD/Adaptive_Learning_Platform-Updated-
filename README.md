@@ -1,3 +1,8 @@
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Django](https://img.shields.io/badge/Django-5.0-green)
+![Status](https://img.shields.io/badge/Status-Active-success)
+![License](https://img.shields.io/badge/License-MIT-orange)
+
 # 🧠 AdaptLearn — Adaptive Learning Platform with Auto Evaluation
 
 A full-featured Django project with AI-powered adaptive learning, auto evaluation, AI chatbot, modern glassmorphism UI, and complete auth system.
