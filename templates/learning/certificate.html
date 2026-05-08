@@ -1,0 +1,321 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Certificate — {{ enrollment.course.title }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0e1a;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;font-family:'DM Sans',sans-serif}
+
+    .controls{margin-bottom:1.5rem;display:flex;gap:1rem}
+    .btn{padding:.65rem 1.5rem;border-radius:50px;border:none;font-weight:600;cursor:pointer;font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none}
+    .btn-print{background:linear-gradient(135deg,#6c63ff,#8b5cf6);color:#fff;box-shadow:0 4px 20px rgba(108,99,255,.4)}
+    .btn-back{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#e8eaf6}
+    .btn:hover{transform:translateY(-2px)}
+
+    /* Certificate Card */
+    .cert-wrap{
+      width:900px;max-width:100%;
+      background:#fff;
+      border-radius:4px;
+      overflow:hidden;
+      box-shadow:0 40px 120px rgba(0,0,0,.6);
+      position:relative;
+    }
+
+    /* Ornate border */
+    .cert-wrap::before{
+      content:'';
+      position:absolute;
+      inset:12px;
+      border:2px solid rgba(108,99,255,.25);
+      border-radius:2px;
+      pointer-events:none;
+      z-index:5;
+    }
+    .cert-wrap::after{
+      content:'';
+      position:absolute;
+      inset:18px;
+      border:1px solid rgba(108,99,255,.12);
+      border-radius:1px;
+      pointer-events:none;
+      z-index:5;
+    }
+
+    /* Header gradient */
+    .cert-header{
+      background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+      padding:2.5rem 3.5rem 2rem;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .cert-header::before{
+      content:'';
+      position:absolute;inset:0;
+      background:
+        radial-gradient(ellipse 60% 80% at 30% 50%,rgba(108,99,255,.25),transparent),
+        radial-gradient(ellipse 40% 60% at 70% 50%,rgba(0,212,255,.15),transparent);
+    }
+    .cert-logo{
+      font-family:'Syne',sans-serif;
+      font-size:1.4rem;
+      font-weight:800;
+      color:#fff;
+      position:relative;
+      z-index:1;
+      margin-bottom:.5rem;
+      letter-spacing:.05em;
+    }
+    .cert-logo span{
+      background:linear-gradient(135deg,#6c63ff,#00d4ff);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .cert-tag{
+      display:inline-block;
+      background:rgba(108,99,255,.3);
+      border:1px solid rgba(108,99,255,.5);
+      color:#a5b4fc;
+      font-size:.72rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      padding:.3rem .9rem;
+      border-radius:50px;
+      position:relative;z-index:1;
+    }
+
+    /* Body */
+    .cert-body{
+      padding:2.5rem 3.5rem;
+      text-align:center;
+      background:#fff;
+      position:relative;
+    }
+
+    /* Watermark */
+    .cert-body::before{
+      content:'ADAPTLEARN';
+      position:absolute;
+      top:50%;left:50%;
+      transform:translate(-50%,-50%) rotate(-25deg);
+      font-family:'Syne',sans-serif;
+      font-size:6rem;
+      font-weight:800;
+      color:rgba(108,99,255,.04);
+      letter-spacing:.2em;
+      pointer-events:none;
+      white-space:nowrap;
+    }
+
+    .cert-presented{
+      font-size:.88rem;
+      color:#6b7280;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-bottom:.75rem;
+    }
+    .cert-name{
+      font-family:'Playfair Display',serif;
+      font-size:3.2rem;
+      font-weight:700;
+      color:#1a1a2e;
+      line-height:1.2;
+      margin-bottom:.75rem;
+      background:linear-gradient(135deg,#1a1a2e,#302b63);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .cert-completed{
+      font-size:.88rem;
+      color:#6b7280;
+      margin-bottom:.5rem;
+      letter-spacing:.06em;
+    }
+    .cert-course{
+      font-family:'Playfair Display',serif;
+      font-size:1.7rem;
+      font-weight:700;
+      color:#302b63;
+      margin-bottom:1rem;
+      font-style:italic;
+    }
+    .cert-desc{
+      font-size:.88rem;
+      color:#6b7280;
+      max-width:480px;
+      margin:0 auto 1.5rem;
+      line-height:1.7;
+    }
+
+    /* Score badge */
+    .cert-score{
+      display:inline-flex;
+      align-items:center;
+      gap:1rem;
+      background:linear-gradient(135deg,#f0eeff,#e8f4ff);
+      border:1px solid rgba(108,99,255,.2);
+      border-radius:16px;
+      padding:.75rem 1.5rem;
+      margin-bottom:2rem;
+    }
+    .score-circle{
+      width:52px;height:52px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#6c63ff,#8b5cf6);
+      display:flex;align-items:center;justify-content:center;
+      flex-direction:column;
+    }
+    .score-num{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#fff;line-height:1}
+    .score-pct{font-size:.6rem;color:rgba(255,255,255,.8)}
+    .score-info{text-align:left}
+    .score-label{font-size:.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:.06em}
+    .score-value{font-weight:700;color:#302b63;font-size:.95rem}
+
+    /* Decorative divider */
+    .cert-divider{
+      display:flex;align-items:center;gap:.75rem;
+      margin:1.2rem 0;color:rgba(108,99,255,.3);font-size:.7rem;
+    }
+    .cert-divider::before,.cert-divider::after{
+      content:'';flex:1;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(108,99,255,.25),transparent);
+    }
+    .cert-divider span{letter-spacing:.15em;text-transform:uppercase}
+
+    /* Signatures */
+    .cert-sigs{
+      display:flex;
+      justify-content:space-around;
+      padding:0 1rem;
+      margin-top:1rem;
+    }
+    .sig-block{text-align:center;flex:1;max-width:160px}
+    .sig-line{
+      height:1px;
+      background:linear-gradient(90deg,transparent,#302b63,transparent);
+      margin-bottom:.4rem;
+    }
+    .sig-name{font-size:.82rem;font-weight:700;color:#1a1a2e}
+    .sig-role{font-size:.7rem;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em}
+    .sig-script{
+      font-family:'Playfair Display',serif;
+      font-style:italic;
+      font-size:1.3rem;
+      color:#6c63ff;
+      margin-bottom:.2rem;
+      display:block;
+    }
+
+    /* Footer */
+    .cert-footer{
+      background:linear-gradient(135deg,#0f0c29,#1a1a2e);
+      padding:1rem 3.5rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:.72rem;
+      color:rgba(255,255,255,.4);
+    }
+    .cert-id{font-family:monospace;color:rgba(108,99,255,.6);letter-spacing:.05em}
+    .cert-date{color:rgba(255,255,255,.5)}
+    .cert-verify{color:rgba(0,212,255,.5)}
+
+    /* Corner ornaments */
+    .corner{position:absolute;width:40px;height:40px;z-index:10}
+    .corner-tl{top:8px;left:8px;border-top:3px solid rgba(108,99,255,.4);border-left:3px solid rgba(108,99,255,.4)}
+    .corner-tr{top:8px;right:8px;border-top:3px solid rgba(108,99,255,.4);border-right:3px solid rgba(108,99,255,.4)}
+    .corner-bl{bottom:8px;left:8px;border-bottom:3px solid rgba(108,99,255,.4);border-left:3px solid rgba(108,99,255,.4)}
+    .corner-br{bottom:8px;right:8px;border-bottom:3px solid rgba(108,99,255,.4);border-right:3px solid rgba(108,99,255,.4)}
+
+    @media print{
+      body{background:#fff;padding:0}
+      .controls{display:none}
+      .cert-wrap{box-shadow:none;max-width:100%;width:100%}
+    }
+    @media(max-width:940px){
+      .cert-wrap{width:100%}
+      .cert-header,.cert-body,.cert-footer{padding-left:1.5rem;padding-right:1.5rem}
+      .cert-name{font-size:2rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="controls no-print">
+    <a href="{% url 'dashboard' %}" class="btn btn-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <button onclick="window.print()" class="btn btn-print"><i class="fas fa-download"></i> Download / Print</button>
+  </div>
+
+  <div class="cert-wrap">
+    <!-- Corner ornaments -->
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <!-- Header -->
+    <div class="cert-header">
+      <div class="cert-logo">🧠 <span>AdaptLearn</span></div>
+      <div class="cert-tag">Certificate of Completion</div>
+    </div>
+
+    <!-- Body -->
+    <div class="cert-body">
+      <p class="cert-presented">This certificate is proudly presented to</p>
+      <div class="cert-name">{{ enrollment.student.get_full_name|default:enrollment.student.username }}</div>
+      <p class="cert-completed">for successfully completing</p>
+      <div class="cert-course">{{ enrollment.course.title }}</div>
+      <p class="cert-desc">
+        Having demonstrated commitment, perseverance, and mastery of all required
+        course materials and assessments on the AdaptLearn adaptive learning platform.
+      </p>
+
+      {% if best_result %}
+      <div class="cert-score">
+        <div class="score-circle">
+          <div class="score-num">{{ best_result.percentage|floatformat:0 }}</div>
+          <div class="score-pct">%</div>
+        </div>
+        <div class="score-info">
+          <div class="score-label">Best Exam Score</div>
+          <div class="score-value">{{ best_result.percentage|floatformat:1 }}% — {{ best_result.status|upper }}</div>
+          <div class="score-label" style="margin-top:.15rem">{{ best_result.exam.title }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="cert-divider"><span>✦ ✦ ✦</span></div>
+
+      <div class="cert-sigs">
+        <div class="sig-block">
+          <span class="sig-script">{{ enrollment.course.instructor.get_full_name|default:"Instructor" }}</span>
+          <div class="sig-line"></div>
+          <div class="sig-name">{{ enrollment.course.instructor.get_full_name|default:"Course Instructor" }}</div>
+          <div class="sig-role">Course Instructor</div>
+        </div>
+        <div class="sig-block">
+          <span class="sig-script">AdaptLearn</span>
+          <div class="sig-line"></div>
+          <div class="sig-name">AdaptLearn Platform</div>
+          <div class="sig-role">Issued By</div>
+        </div>
+        <div class="sig-block">
+          <span class="sig-script">{{ enrollment.completed_at|date:"d M Y"|default:"Completed" }}</span>
+          <div class="sig-line"></div>
+          <div class="sig-name">{{ enrollment.completed_at|date:"d M Y"|default:"—" }}</div>
+          <div class="sig-role">Date of Completion</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cert-footer">
+      <span class="cert-id">ID: CERT-{{ enrollment.id }}-{{ enrollment.student.id }}</span>
+      <span class="cert-date">Issued: {{ enrollment.completed_at|date:"d F Y"|default:"—" }}</span>
+      <span class="cert-verify">adaptlearn.com/verify</span>
+    </div>
+  </div>
+</body>
+</html>

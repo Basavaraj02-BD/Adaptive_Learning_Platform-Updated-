@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Exams — AdaptLearn{% endblock %}
+{% block content %}
+<div class="mb-4" data-aos="fade-down">
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800">📋 My <span class="gradient-text">Exams</span></h1>
+  <p style="color:var(--muted)">All available exams for your enrolled courses</p>
+</div>
+<div class="row g-4">
+  {% for exam in exams %}
+  <div class="col-md-6 col-xl-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+    <div class="glass p-4 h-100" style="border-radius:20px;transition:transform .3s,box-shadow .3s" onmouseover="this.style.transform='translateY(-6px)'" onmouseout="this.style.transform=''">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">
+          <i class="fas fa-clipboard-list" style="color:#fff"></i>
+        </div>
+        <div>
+          <span style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">{{ exam.get_exam_type_display }}</span>
+          <h3 style="font-weight:700;font-size:1rem;margin:0">{{ exam.title }}</h3>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">{{ exam.description|truncatechars:100 }}</p>
+      <div class="d-flex flex-wrap gap-3 mb-3" style="font-size:.82rem">
+        <span style="color:var(--accent2)"><i class="fas fa-clock me-1"></i>{{ exam.duration_mins }} min</span>
+        <span style="color:var(--gold)"><i class="fas fa-star me-1"></i>{{ exam.total_marks }} marks</span>
+        <span style="color:var(--muted)"><i class="fas fa-redo me-1"></i>{{ exam.max_attempts }} attempts</span>
+      </div>
+      <div class="d-flex align-items-center justify-content-between">
+        <div>
+          <div style="font-size:.72rem;color:var(--muted)">Pass mark</div>
+          <div style="font-weight:700;color:var(--green)">{{ exam.pass_marks }}/{{ exam.total_marks }}</div>
+        </div>
+        <a href="{% url 'take_exam' exam_id=exam.id %}" class="btn-primary-glow btn">
+          <i class="fas fa-play me-2"></i>Start Exam
+        </a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5" style="color:var(--muted)">
+    <i class="fas fa-clipboard-check fa-3x mb-3"></i>
+    <h3>No exams available</h3>
+    <p>Enroll in courses to access their exams.</p>
+    <a href="{% url 'course_list' %}" class="btn-primary-glow btn mt-2">Browse Courses</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

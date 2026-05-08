@@ -1,0 +1,634 @@
+{% load static %}{% load learning_extras %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}AdaptLearn — Adaptive Learning Platform{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+
+  <style>
+    /* ── DESIGN TOKENS ── */
+    :root {
+      --bg:        #080c14;
+      --bg2:       #0d1220;
+      --bg3:       #111827;
+      --card:      rgba(255,255,255,0.045);
+      --border:    rgba(255,255,255,0.08);
+      --accent:    #6c63ff;
+      --accent2:   #00d4ff;
+      --accent3:   #ff6584;
+      --gold:      #ffd700;
+      --green:     #00e676;
+      --text:      #e8eaf6;
+      --muted:     #6b7280;
+      --radius:    16px;
+      --radius-lg: 24px;
+      --shadow:    0 8px 32px rgba(0,0,0,.45);
+      --glow:      0 0 40px rgba(108,99,255,.25);
+    }
+
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated mesh background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(108,99,255,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,212,255,.08) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,101,132,.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    h1,h2,h3,h4,h5,h6,
+    .display-font { font-family: 'Syne', sans-serif; font-weight: 700; }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── GLASSMORPHISM CARDS ── */
+    .glass {
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius);
+    }
+    .glass-lg { border-radius: var(--radius-lg); }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      background: rgba(8,12,20,.85) !important;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: .9rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .navbar-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg,#6c63ff,#00d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-link {
+      color: var(--muted) !important;
+      font-weight: 500;
+      transition: color .2s;
+      position: relative;
+      padding: .4rem .8rem !important;
+    }
+    .nav-link:hover, .nav-link.active { color: var(--text) !important; }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 50%; right: 50%;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: left .25s, right .25s;
+    }
+    .nav-link:hover::after { left: 0; right: 0; }
+
+    /* ── BUTTONS ── */
+    .btn-primary-glow {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      border: none;
+      color: #fff;
+      padding: .65rem 1.75rem;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: .95rem;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(108,99,255,.35);
+      cursor: pointer;
+    }
+    .btn-primary-glow:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(108,99,255,.55);
+      color: #fff;
+    }
+    .btn-outline-glow {
+      background: transparent;
+      border: 1.5px solid var(--accent);
+      color: var(--accent);
+      padding: .65rem 1.75rem;
+      border-radius: 50px;
+      font-weight: 600;
+      transition: all .2s;
+      cursor: pointer;
+    }
+    .btn-outline-glow:hover {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(108,99,255,.4);
+    }
+    .btn-cyan {
+      background: linear-gradient(135deg, #00d4ff, #0099bb);
+      border: none; color: #000; font-weight: 700;
+      padding: .65rem 1.75rem; border-radius: 50px;
+      transition: all .2s; cursor: pointer;
+    }
+    .btn-cyan:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,.35); color: #000; }
+
+    /* ── FORM INPUTS ── */
+    .glass-input {
+      background: rgba(255,255,255,.05) !important;
+      border: 1.5px solid var(--border) !important;
+      color: var(--text) !important;
+      border-radius: 12px !important;
+      padding: .75rem 1rem !important;
+      transition: border-color .2s, box-shadow .2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .glass-input:focus {
+      background: rgba(255,255,255,.08) !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(108,99,255,.2) !important;
+      outline: none;
+    }
+    .glass-input::placeholder { color: var(--muted) !important; }
+    .form-label { color: var(--muted); font-size: .87rem; font-weight: 500; margin-bottom: .4rem; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background: rgba(8,12,20,.95);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0;
+      padding-top: 70px;
+      z-index: 900;
+      transition: transform .3s;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .75rem 1.5rem;
+      color: var(--muted);
+      text-decoration: none;
+      border-radius: 0 50px 50px 0;
+      margin-right: 1rem;
+      transition: all .2s;
+      font-weight: 500;
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(108,99,255,.15);
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+    }
+    .sidebar-link i { width: 20px; text-align: center; }
+    .sidebar-section {
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 1.2rem 1.5rem .4rem;
+      opacity: .7;
+    }
+    .main-content {
+      margin-left: 260px;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── STAT CARDS ── */
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform .25s, box-shadow .25s;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      opacity: .12;
+    }
+    .stat-card.purple::before { background: var(--accent); }
+    .stat-card.cyan::before   { background: var(--accent2); }
+    .stat-card.pink::before   { background: var(--accent3); }
+    .stat-card.gold::before   { background: var(--gold); }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .stat-number {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stat-label { color: var(--muted); font-size: .85rem; margin-top: .3rem; }
+    .stat-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+
+    /* ── COURSE CARDS ── */
+    .course-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: transform .3s, box-shadow .3s;
+      position: relative;
+    }
+    .course-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(108,99,255,.3);
+    }
+    .course-card .card-img-top {
+      height: 180px;
+      object-fit: cover;
+    }
+    .course-card .card-body { padding: 1.25rem; }
+    .badge-difficulty {
+      font-size: .72rem; font-weight: 600;
+      padding: .25rem .65rem;
+      border-radius: 50px;
+    }
+    .badge-beginner    { background: rgba(0,230,118,.15); color: var(--green); }
+    .badge-intermediate{ background: rgba(255,213,0,.15);  color: var(--gold); }
+    .badge-advanced    { background: rgba(255,101,132,.15); color: var(--accent3); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-glow {
+      height: 8px;
+      background: rgba(255,255,255,.08);
+      border-radius: 50px;
+      overflow: hidden;
+    }
+    .progress-glow .bar {
+      height: 100%;
+      border-radius: 50px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 10px rgba(108,99,255,.5);
+      transition: width .6s ease;
+    }
+
+    /* ── ALERTS / TOASTS ── */
+    .messages-container {
+      position: fixed;
+      top: 80px; right: 20px;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: .5rem;
+    }
+    .toast-msg {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .85rem 1.2rem;
+      font-size: .9rem;
+      animation: slideIn .3s ease;
+      min-width: 300px;
+    }
+    .toast-msg.success { border-left: 4px solid var(--green); }
+    .toast-msg.error   { border-left: 4px solid var(--accent3); }
+    .toast-msg.info    { border-left: 4px solid var(--accent2); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:none;opacity:1} }
+
+    /* ── NOTIFICATION BADGE ── */
+    .notif-badge {
+      position: absolute;
+      top: -4px; right: -4px;
+      background: var(--accent3);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 700;
+      min-width: 18px; height: 18px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── CHATBOT WIDGET ── */
+    .chatbot-fab {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 6px 30px rgba(108,99,255,.5);
+      z-index: 8000;
+      border: none;
+      transition: transform .25s, box-shadow .25s;
+      animation: pulse 2.5s infinite;
+    }
+    .chatbot-fab:hover { transform: scale(1.12); }
+    @keyframes pulse {
+      0%,100%{box-shadow:0 6px 30px rgba(108,99,255,.5)}
+      50%{box-shadow:0 6px 50px rgba(108,99,255,.8),0 0 0 8px rgba(108,99,255,.1)}
+    }
+
+    /* ── TABLE ── */
+    .glass-table { width: 100%; border-collapse: collapse; }
+    .glass-table th {
+      background: rgba(108,99,255,.1);
+      padding: .85rem 1rem;
+      font-size: .78rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .glass-table td {
+      padding: .85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+    }
+    .glass-table tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── MISC ── */
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+    }
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(108,99,255,.4); border-radius: 3px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent2); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: none; }
+      .main-content { margin-left: 0; padding: 1rem; }
+    }
+  </style>
+  <link href="{% static 'css/main.css' %}" rel="stylesheet"/>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- ── NAVBAR ── -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid px-4">
+      {% if request.user.is_authenticated %}
+      <button class="btn btn-sm me-3 d-lg-none" onclick="toggleSidebar()"
+              style="background:rgba(255,255,255,.08);border:none;color:var(--text);">
+        <i class="fas fa-bars"></i>
+      </button>
+      {% endif %}
+      <a class="navbar-brand" href="{% url 'home' %}">
+        <i class="fas fa-brain me-2"></i>AdaptLearn
+      </a>
+      <div class="ms-auto d-flex align-items-center gap-3">
+        {% if request.user.is_authenticated %}
+        <!-- Search -->
+        <form action="{% url 'search' %}" method="get" class="d-none d-lg-flex align-items-center">
+          <div style="position:relative">
+            <i class="fas fa-search" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.82rem"></i>
+            <input type="text" name="q" placeholder="Search courses…"
+                   style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:50px;color:var(--text);padding:.42rem .9rem .42rem 2.2rem;font-size:.82rem;width:200px;outline:none;transition:all .2s"
+                   onfocus="this.style.width='260px';this.style.borderColor='var(--accent)'"
+                   onblur="this.style.width='200px';this.style.borderColor='var(--border)'">
+          </div>
+        </form>
+          <!-- Notifications -->
+          <a href="{% url 'notifications' %}" class="position-relative" style="color:var(--muted)">
+            <i class="fas fa-bell fa-lg"></i>
+            {% if unread_notifications_count > 0 %}
+            <span class="notif-badge">{{ unread_notifications_count }}</span>
+            {% endif %}
+          </a>
+          <!-- Avatar dropdown -->
+          <div class="dropdown">
+            <button class="btn d-flex align-items-center gap-2 px-3"
+                    style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:50px;color:var(--text)"
+                    data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle"></i>
+              <span class="d-none d-md-inline">{{ request.user.first_name|default:request.user.username }}</span>
+              <i class="fas fa-chevron-down fa-xs"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end"
+                style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);min-width:200px">
+              <li><a class="dropdown-item" href="{% url 'profile' %}"
+                     style="color:var(--text);padding:.6rem 1.2rem">
+                  <i class="fas fa-user me-2" style="color:var(--accent)"></i>My Profile</a></li>
+              <li><a class="dropdown-item" href="{% url 'dashboard' %}"
+                     style="color:var(--text);padding:.6rem 1.2rem">
+                  <i class="fas fa-th-large me-2" style="color:var(--accent2)"></i>Dashboard</a></li>
+              {% if request.user.is_superuser or request.user.profile.role == 'admin' %}
+              <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}"
+                     style="color:var(--text);padding:.6rem 1.2rem">
+                  <i class="fas fa-shield-alt me-2" style="color:var(--gold)"></i>Admin Panel</a></li>
+              {% endif %}
+              <li><hr style="border-color:var(--border);margin:.3rem 0"></li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}"
+                     style="color:var(--accent3);padding:.6rem 1.2rem">
+                  <i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+            </ul>
+          </div>
+        {% else %}
+          <a href="{% url 'user_login' %}" class="btn-outline-glow btn">Login</a>
+          <a href="{% url 'user_register' %}" class="btn-primary-glow btn">Sign Up</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MESSAGES ── -->
+  {% if messages %}
+  <div class="messages-container" id="toastContainer">
+    {% for msg in messages %}
+    <div class="toast-msg {{ msg.tags }}">
+      {% if msg.tags == 'success' %}<i class="fas fa-check-circle me-2" style="color:var(--green)"></i>
+      {% elif msg.tags == 'error' %}<i class="fas fa-exclamation-circle me-2" style="color:var(--accent3)"></i>
+      {% else %}<i class="fas fa-info-circle me-2" style="color:var(--accent2)"></i>{% endif %}
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── LAYOUT ── -->
+  {% if request.user.is_authenticated %}
+  <div class="d-flex">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="px-3 mb-2">
+        <div class="d-flex align-items-center gap-2 p-3 glass" style="border-radius:14px">
+          <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+                      border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem">
+            <i class="fas fa-user"></i>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:.9rem">{{ request.user.first_name|default:request.user.username }}</div>
+            <div style="font-size:.75rem;color:var(--muted)">{{ request.user.profile.role|title|default:"Student" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">Main</div>
+      <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="fas fa-th-large"></i> Dashboard
+      </a>
+      <a href="{% url 'course_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'course_list' %}active{% endif %}">
+        <i class="fas fa-graduation-cap"></i> Courses
+      </a>
+      <a href="{% url 'exam_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'exam_list' %}active{% endif %}">
+        <i class="fas fa-clipboard-list"></i> Exams
+      </a>
+      <a href="{% url 'leaderboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}">
+        <i class="fas fa-trophy"></i> Leaderboard
+      </a>
+      <a href="{% url 'analytics' %}" class="sidebar-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+        <i class="fas fa-chart-bar"></i> Analytics
+      </a>
+      <a href="{% url 'chatbot' %}" class="sidebar-link {% if request.resolver_match.url_name == 'chatbot' %}active{% endif %}">
+        <i class="fas fa-robot"></i> AI Chatbot
+      </a>
+
+     <div class="sidebar-section">Account</div>
+      <a href="{% url 'profile' %}"
+         class="sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+        <i class="fas fa-user-cog"></i> Profile
+      </a>
+      <a href="{% url 'change_password' %}"
+         class="sidebar-link {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
+        <i class="fas fa-key"></i> Change Password
+      </a>
+      <a href="{% url 'progress_report' %}" class="sidebar-link">
+        <i class="fas fa-download"></i> Export Progress
+      </a>
+
+      <!-- ✅ Notifications fixed — properly inside Account section -->
+      <a href="{% url 'notifications' %}"
+         class="sidebar-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+        <i class="fas fa-bell"></i> Notifications
+        {% if unread_notifications_count > 0 %}
+        <span class="ms-auto badge"
+              style="background:var(--accent3);border-radius:50px;font-size:.7rem;padding:.2rem .5rem">
+          {{ unread_notifications_count }}
+        </span>
+        {% endif %}
+      </a>
+
+      {% if request.user.is_superuser or request.user.is_staff or request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+      <div class="sidebar-section">Instructor</div>
+      <a href="{% url 'instructor_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'instructor_dashboard' %}active{% endif %}">
+        <i class="fas fa-chalkboard-teacher"></i> Instructor Panel
+      </a>
+      <a href="{% url 'create_course' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_course' %}active{% endif %}">
+        <i class="fas fa-plus-circle"></i> Create Course
+      </a>
+      {% endif %}
+
+      {% if request.user.is_superuser %}
+      <div class="sidebar-section">Admin</div>
+      <a href="{% url 'admin_dashboard' %}" class="sidebar-link">
+        <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+      </a>
+      <a href="{% url 'admin_users' %}" class="sidebar-link">
+        <i class="fas fa-users-cog"></i> Manage Users
+      </a>
+      <a href="{% url 'admin_courses' %}" class="sidebar-link">
+        <i class="fas fa-book-open"></i> Manage Courses
+      </a>
+      <a href="/admin/" class="sidebar-link">
+        <i class="fas fa-database"></i> Django Admin
+      </a>
+      {% endif %}
+
+      <div class="mt-auto p-3" style="position:absolute;bottom:0;left:0;right:0">
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color:var(--accent3)">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content flex-grow-1" style="min-height:calc(100vh - 68px)">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Chatbot FAB -->
+  <button class="chatbot-fab" onclick="window.location='{% url 'chatbot' %}'" title="AI Chatbot">
+    <i class="fas fa-robot"></i>
+  </button>
+
+  {% else %}
+  <!-- Non-authenticated layout -->
+  <main style="position:relative;z-index:1">{% block extra_content %}{% endblock %}</main>
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({ duration: 600, once: true, offset: 60 });
+
+    // Auto-dismiss toasts
+    setTimeout(() => {
+      document.querySelectorAll('.toast-msg').forEach(t => {
+        t.style.animation = 'slideIn .3s ease reverse';
+        setTimeout(() => t.remove(), 300);
+      });
+    }, 4000);
+
+    // Sidebar toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // Close sidebar on outside click (mobile)
+    document.addEventListener('click', e => {
+      const sb = document.getElementById('sidebar');
+      if (sb && !sb.contains(e.target) && !e.target.closest('[onclick="toggleSidebar()"]')) {
+        sb.classList.remove('open');
+      }
+    });
+  </script>
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

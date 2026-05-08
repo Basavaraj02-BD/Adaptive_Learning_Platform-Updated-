@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Reviews — {{ course.title }}{% endblock %}
+{% block content %}
+<div class="mb-4" data-aos="fade-down">
+  <a href="{% url 'course_detail' slug=course.slug %}" style="color:var(--muted);font-size:.88rem">← {{ course.title }}</a>
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin-top:.3rem">
+    ⭐ Reviews &amp; Ratings
+  </h1>
+</div>
+
+<div class="row g-4">
+  <!-- Rating Summary -->
+  <div class="col-xl-4" data-aos="fade-up">
+    <div class="glass p-4" style="border-radius:24px;text-align:center">
+      <div style="font-family:'Syne',sans-serif;font-size:4.5rem;font-weight:800;color:var(--gold);line-height:1">
+        {{ avg_rating|floatformat:1 }}
+      </div>
+      <div style="font-size:1.5rem;color:var(--gold);margin:.3rem 0">
+        {% for i in "12345" %}{% if forloop.counter <= avg_rating|floatformat:0|add:"0" %}★{% else %}☆{% endif %}{% endfor %}
+      </div>
+      <div style="color:var(--muted);font-size:.88rem">{{ total_reviews }} review{{ total_reviews|pluralize }}</div>
+      <div class="divider"></div>
+      <!-- Star breakdown -->
+      {% for star, count, pct in star_breakdown %}
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span style="font-size:.78rem;color:var(--muted);width:40px;text-align:right">{{ star }}★</span>
+        <div class="progress-glow flex-grow-1"><div class="bar gold" style="width:{{ pct }}%"></div></div>
+        <span style="font-size:.78rem;color:var(--muted);width:28px">{{ count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Reviews List + Write Review -->
+  <div class="col-xl-8">
+    <!-- Write a Review -->
+    {% if is_enrolled and not user_reviewed %}
+    <div class="glass p-4 mb-4" style="border-radius:20px" data-aos="fade-up" data-aos-delay="60">
+      <h3 style="font-weight:700;margin-bottom:1rem">✏️ Write a Review</h3>
+      <form method="post" action="{% url 'submit_review' course_id=course.id %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Your Rating</label>
+          <div class="d-flex gap-2" id="starRating">
+            {% for i in "12345" %}
+            <button type="button" class="star-btn" data-val="{{ forloop.counter }}"
+                    style="background:none;border:none;font-size:2rem;cursor:pointer;color:var(--border);transition:color .15s"
+                    onclick="setRating({{ forloop.counter }})">★</button>
+            {% endfor %}
+          </div>
+          <input type="hidden" name="rating" id="ratingInput" value="5">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Your Review</label>
+          <textarea name="comment" class="glass-input" rows="4" placeholder="Share your experience with this course…" style="width:100%"></textarea>
+        </div>
+        <button type="submit" class="btn-primary-glow btn">
+          <i class="fas fa-paper-plane me-2"></i>Submit Review
+        </button>
+      </form>
+    </div>
+    {% elif user_reviewed %}
+    <div class="alert-glass info mb-4">
+      <i class="fas fa-check-circle"></i>
+      <span>You've already reviewed this course. Thank you!</span>
+    </div>
+    {% endif %}
+
+    <!-- Reviews -->
+    {% for review in reviews %}
+    <div class="glass p-4 mb-3" style="border-radius:18px" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+      <div class="d-flex align-items-start gap-3">
+        <div class="avatar avatar-md avatar-gradient flex-shrink-0">
+          {{ review.student.first_name|slice:":1"|upper|default:review.student.username|slice:":1"|upper }}
+        </div>
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div style="font-weight:700">{{ review.student.get_full_name|default:review.student.username }}</div>
+              <div style="color:var(--gold);font-size:1rem">
+                {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+              </div>
+            </div>
+            <div style="font-size:.75rem;color:var(--muted)">{{ review.created_at|timesince }} ago</div>
+          </div>
+          {% if review.comment %}
+          <p style="font-size:.9rem;color:var(--text2);margin-top:.5rem;line-height:1.7">{{ review.comment }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state glass p-4" style="border-radius:20px">
+      <div class="empty-icon">⭐</div>
+      <h3>No reviews yet</h3>
+      <p>Be the first to review this course!</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function setRating(val) {
+    document.getElementById('ratingInput').value = val;
+    document.querySelectorAll('.star-btn').forEach((btn, i) => {
+      btn.style.color = i < val ? 'var(--gold)' : 'var(--border)';
+    });
+  }
+  // Default 5 stars
+  setRating(5);
+</script>
+{% endblock %}

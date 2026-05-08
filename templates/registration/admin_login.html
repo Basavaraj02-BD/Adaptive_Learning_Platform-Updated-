@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — AdaptLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root { --bg:#080c14;--accent:#ffd700;--accent2:#ff6b35;--text:#e8eaf6;--muted:#6b7280;--border:rgba(255,255,255,.08); }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 60% at 15% 20%,rgba(255,215,0,.1) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 80%,rgba(255,107,53,.08) 0%,transparent 55%);pointer-events:none}
+    .orb{position:fixed;border-radius:50%;filter:blur(80px);animation:float 8s ease-in-out infinite;pointer-events:none}
+    .orb1{width:400px;height:400px;top:-100px;left:-100px;background:rgba(255,215,0,.08)}
+    .orb2{width:300px;height:300px;bottom:-80px;right:-80px;background:rgba(255,107,53,.06);animation-delay:-4s}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-30px)}}
+    .auth-wrapper{display:flex;min-height:100vh;width:100%;position:relative;z-index:10}
+    .auth-panel-left{flex:1;display:flex;flex-direction:column;justify-content:center;padding:4rem;background:rgba(255,215,0,.04);border-right:1px solid var(--border);position:relative;overflow:hidden}
+    .brand-name{font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;background:linear-gradient(135deg,#ffd700,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem}
+    .hero-tagline{font-size:1.1rem;color:var(--muted);line-height:1.7;max-width:380px}
+    .feature-list{margin-top:2.5rem;display:flex;flex-direction:column;gap:1rem}
+    .feature-item{display:flex;align-items:center;gap:1rem;padding:.85rem 1rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;transition:border-color .2s}
+    .feature-item:hover{border-color:rgba(255,215,0,.4)}
+    .feature-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .feature-text{font-size:.9rem;color:var(--muted)}
+    .feature-title{font-weight:600;color:var(--text);font-size:.95rem}
+    .auth-panel-right{width:480px;display:flex;flex-direction:column;justify-content:center;padding:3rem 2.5rem;background:rgba(8,12,20,.9);backdrop-filter:blur(24px)}
+    .auth-title{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-bottom:.4rem}
+    .auth-subtitle{color:var(--muted);font-size:.95rem;margin-bottom:2rem}
+    .glass-input{background:rgba(255,255,255,.05)!important;border:1.5px solid var(--border)!important;color:var(--text)!important;border-radius:12px!important;padding:.8rem 1rem!important;font-family:'DM Sans',sans-serif;transition:border-color .2s,box-shadow .2s;width:100%}
+    .glass-input:focus{background:rgba(255,255,255,.08)!important;border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(255,215,0,.15)!important;outline:none}
+    .glass-input::placeholder{color:var(--muted)!important}
+    .form-label{color:var(--muted);font-size:.85rem;margin-bottom:.4rem;display:block}
+    .input-group-icon{position:relative}
+    .input-group-icon .icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+    .input-group-icon input{padding-left:2.8rem!important}
+    .input-toggle-password{position:absolute;right:1rem;top:50%;transform:translateY(-50%);color:var(--muted);cursor:pointer;transition:color .2s}
+    .input-toggle-password:hover{color:var(--accent)}
+    .btn-login{width:100%;padding:.85rem;background:linear-gradient(135deg,#ffd700,#ff6b35);border:none;border-radius:12px;color:#000;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 24px rgba(255,215,0,.3)}
+    .btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(255,215,0,.5)}
+    .alert-glass{background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:12px;padding:.8rem 1rem;color:#ff6584;font-size:.88rem;margin-bottom:1rem}
+    .link-accent{color:var(--accent);text-decoration:none;font-weight:600}
+    .link-accent:hover{color:var(--accent2)}
+    .admin-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:50px;padding:.3rem .9rem;font-size:.8rem;color:#ffd700;margin-bottom:1rem}
+    @media(max-width:900px){.auth-panel-left{display:none}.auth-panel-right{width:100%;padding:2rem 1.5rem}}
+  </style>
+</head>
+<body>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="auth-wrapper">
+    <div class="auth-panel-left">
+      <div>
+        <div class="brand-name"><i class="fas fa-shield-alt me-2"></i>Admin Portal</div>
+        <p class="hero-tagline">Secure administrator access to the AdaptLearn management console.</p>
+        <div class="feature-list">
+          <div class="feature-item">
+            <div class="feature-icon" style="background:rgba(255,215,0,.2)"><i class="fas fa-users-cog" style="color:#ffd700"></i></div>
+            <div><div class="feature-title">User Management</div><div class="feature-text">Manage students, instructors and roles</div></div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" style="background:rgba(255,107,53,.2)"><i class="fas fa-chart-line" style="color:#ff6b35"></i></div>
+            <div><div class="feature-title">Analytics & Reports</div><div class="feature-text">Platform insights and performance data</div></div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" style="background:rgba(0,230,118,.2)"><i class="fas fa-book-open" style="color:#00e676"></i></div>
+            <div><div class="feature-title">Content Control</div><div class="feature-text">Manage courses, exams and materials</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="auth-panel-right">
+      <div class="admin-badge"><i class="fas fa-shield-alt"></i> Administrator Access</div>
+      <h1 class="auth-title" style="background:linear-gradient(135deg,#ffd700,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Admin Login</h1>
+      <p class="auth-subtitle">Restricted to authorised administrators only</p>
+
+      {% if form.errors %}
+      <div class="alert-glass"><i class="fas fa-exclamation-circle me-2"></i>Invalid admin credentials.</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Admin Username</label>
+          <div class="input-group-icon">
+            <i class="fas fa-user-shield icon"></i>
+            {{ form.username }}
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="form-label">Admin Password</label>
+          <div class="input-group-icon position-relative">
+            <i class="fas fa-lock icon"></i>
+            {{ form.password }}
+            <span class="input-toggle-password" onclick="togglePwd(this)"><i class="fas fa-eye"></i></span>
+          </div>
+        </div>
+        <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt me-2"></i>Access Admin Panel</button>
+      </form>
+      <div class="text-center mt-4" style="font-size:.88rem;color:var(--muted)">
+        New admin?
+        <a href="{% url 'admin_register' %}" class="link-accent">Register here</a>
+        &nbsp;·&nbsp;
+        <a href="{% url 'user_login' %}" class="link-accent">User Login</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    function togglePwd(el) {
+      const inp = el.closest('.position-relative').querySelector('input');
+      const icon = el.querySelector('i');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      icon.className = inp.type === 'text' ? 'fas fa-eye-slash' : 'fas fa-eye';
+    }
+  </script>
+</body>
+</html>

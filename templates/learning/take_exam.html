@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}{{ exam.title }} — AdaptLearn{% endblock %}
+
+{% block extra_css %}
+<style>
+  .exam-header {
+    background: linear-gradient(135deg, rgba(108,99,255,.15), rgba(0,212,255,.08));
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .timer-box {
+    background: rgba(255,101,132,.12);
+    border: 1.5px solid rgba(255,101,132,.3);
+    border-radius: 14px;
+    padding: .7rem 1.2rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent3);
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .timer-box.warning { border-color: rgba(255,215,0,.5); color: var(--gold); background: rgba(255,215,0,.1); }
+  .timer-box.danger  { border-color: rgba(255,101,132,.8); color: var(--accent3); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    transition: border-color .2s;
+  }
+  .question-card:focus-within { border-color: rgba(108,99,255,.4); }
+  .question-number {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .85rem;
+    flex-shrink: 0;
+  }
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: .5rem;
+    transition: all .2s;
+    font-size: .9rem;
+  }
+  .option-label:hover { border-color: var(--accent); background: rgba(108,99,255,.07); }
+  .option-label input[type=radio]:checked + .option-text { color: var(--accent); }
+  input[type=radio]:checked ~ .option-label,
+  .option-label:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(108,99,255,.1);
+  }
+  .q-nav-dot {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    background: transparent;
+    color: var(--muted);
+  }
+  .q-nav-dot.answered { background: rgba(0,230,118,.15); border-color: var(--green); color: var(--green); }
+  .q-nav-dot.current  { border-color: var(--accent); color: var(--accent); }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="examForm">
+  {% csrf_token %}
+  <!-- Header -->
+  <div class="exam-header" data-aos="fade-down">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h1 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin:0">{{ exam.title }}</h1>
+        <p style="color:var(--muted);margin:.2rem 0 0">{{ exam.course.title }} · {{ questions|length }} questions · {{ exam.total_marks }} marks</p>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="timer-box" id="timerBox">
+          <i class="fas fa-clock"></i>
+          <span id="timerDisplay">{{ duration }}:00</span>
+        </div>
+        <button type="submit" class="btn-primary-glow btn" onclick="return confirmSubmit()">
+          <i class="fas fa-paper-plane me-2"></i>Submit
+        </button>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div class="progress-glow mt-3"><div class="bar" id="progressBar" style="width:0%"></div></div>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem" id="progressText">0 of {{ questions|length }} answered</div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Questions -->
+    <div class="col-xl-9">
+      {% for q in questions %}
+      <div class="question-card" id="qcard{{ forloop.counter }}" data-q="{{ forloop.counter }}">
+        <div class="d-flex gap-3 mb-3">
+          <div class="question-number">{{ forloop.counter }}</div>
+          <div>
+            <div style="font-weight:600;line-height:1.6">{{ q.question_text }}</div>
+            <div class="d-flex gap-2 mt-1">
+              <span style="font-size:.72rem;color:var(--muted);background:rgba(255,255,255,.06);padding:.15rem .5rem;border-radius:50px">
+                {{ q.marks }} mark{{ q.marks|pluralize }}
+              </span>
+              <span style="font-size:.72rem;padding:.15rem .5rem;border-radius:50px;
+                {% if q.difficulty == 'easy' %}background:rgba(0,230,118,.12);color:var(--green)
+                {% elif q.difficulty == 'medium' %}background:rgba(255,215,0,.12);color:var(--gold)
+                {% else %}background:rgba(255,101,132,.12);color:var(--accent3){% endif %}">
+                {{ q.get_difficulty_display }}
+              </span>
+            </div>
+          </div>
+        </div>
+        {% if q.question_type == 'mcq' %}
+          {% for opt in q.get_options %}
+          <label class="option-label" onclick="markAnswered({{ forloop.parentloop.counter }})">
+            <input type="radio" name="q_{{ q.id }}" value="{{ opt }}" style="accent-color:var(--accent)">
+            <span class="option-text">{{ opt }}</span>
+          </label>
+          {% endfor %}
+        {% elif q.question_type == 'true_false' %}
+          <label class="option-label" onclick="markAnswered({{ forloop.counter }})">
+            <input type="radio" name="q_{{ q.id }}" value="True" style="accent-color:var(--green)">
+            <span class="option-text"><i class="fas fa-check me-1" style="color:var(--green)"></i>True</span>
+          </label>
+          <label class="option-label" onclick="markAnswered({{ forloop.counter }})">
+            <input type="radio" name="q_{{ q.id }}" value="False" style="accent-color:var(--accent3)">
+            <span class="option-text"><i class="fas fa-times me-1" style="color:var(--accent3)"></i>False</span>
+          </label>
+        {% else %}
+          <input type="text" name="q_{{ q.id }}" class="glass-input" placeholder="Your answer…"
+                 oninput="markAnswered({{ forloop.counter }})" style="width:100%"/>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div class="text-center mt-2">
+        <button type="submit" class="btn-primary-glow btn btn-lg" onclick="return confirmSubmit()">
+          <i class="fas fa-paper-plane me-2"></i>Submit Exam
+        </button>
+      </div>
+    </div>
+
+    <!-- Question Navigator -->
+    <div class="col-xl-3">
+      <div class="glass p-3 sticky-top" style="top:84px;border-radius:18px">
+        <h3 style="font-size:.9rem;font-weight:700;margin-bottom:.8rem">Question Navigator</h3>
+        <div class="d-flex flex-wrap gap-2 mb-3" id="qnavGrid">
+          {% for q in questions %}
+          <button type="button" class="q-nav-dot" id="qnav{{ forloop.counter }}"
+                  onclick="scrollToQ({{ forloop.counter }})">{{ forloop.counter }}</button>
+          {% endfor %}
+        </div>
+        <div class="divider"></div>
+        <div class="d-flex flex-column gap-1" style="font-size:.78rem">
+          <div class="d-flex align-items-center gap-2"><div style="width:12px;height:12px;background:rgba(0,230,118,.3);border:1.5px solid var(--green);border-radius:50%"></div> Answered</div>
+          <div class="d-flex align-items-center gap-2"><div style="width:12px;height:12px;border:1.5px solid var(--border);border-radius:50%"></div> Not answered</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const totalTime = {{ duration }} * 60;
+  let remaining = totalTime;
+  const answered = new Set();
+
+  function updateTimer() {
+    remaining--;
+    if (remaining <= 0) { document.getElementById('examForm').submit(); return; }
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const box = document.getElementById('timerBox');
+    if (remaining < 60) box.className = 'timer-box danger';
+    else if (remaining < 300) box.className = 'timer-box warning';
+  }
+  setInterval(updateTimer, 1000);
+
+  function markAnswered(n) {
+    answered.add(n);
+    document.getElementById('qnav'+n).classList.add('answered');
+    const total = {{ questions|length }};
+    document.getElementById('progressBar').style.width = (answered.size/total*100)+'%';
+    document.getElementById('progressText').textContent = answered.size+' of '+total+' answered';
+  }
+
+  function scrollToQ(n) {
+    document.getElementById('qcard'+n).scrollIntoView({behavior:'smooth',block:'center'});
+    document.querySelectorAll('.q-nav-dot').forEach(d=>d.classList.remove('current'));
+    document.getElementById('qnav'+n).classList.add('current');
+  }
+
+  function confirmSubmit() {
+    const total = {{ questions|length }};
+    const unanswered = total - answered.size;
+    if (unanswered > 0) {
+      return confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`);
+    }
+    return confirm('Submit your exam? You cannot change answers after submitting.');
+  }
+
+  // Warn on tab close
+  window.addEventListener('beforeunload', e => {
+    e.preventDefault(); e.returnValue = '';
+  });
+</script>
+{% endblock %}

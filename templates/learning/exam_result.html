@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Result — {{ result.exam.title }}{% endblock %}
+{% block content %}
+<div class="text-center mb-4" data-aos="zoom-in">
+  {% if result.status == 'pass' %}
+  <div style="font-size:4rem;margin-bottom:.5rem">🎉</div>
+  <h1 style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--green)">Congratulations!</h1>
+  <p style="color:var(--muted)">You passed the exam!</p>
+  {% else %}
+  <div style="font-size:4rem;margin-bottom:.5rem">💪</div>
+  <h1 style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--accent3)">Keep Going!</h1>
+  <p style="color:var(--muted)">Review and try again — you've got this.</p>
+  {% endif %}
+</div>
+
+<!-- Score Card -->
+<div class="row g-4 mb-4 justify-content-center">
+  <div class="col-md-8 col-xl-6">
+    <div class="glass p-4 text-center" style="border-radius:24px" data-aos="fade-up">
+      <!-- Circular Score -->
+      <div style="position:relative;display:inline-block;margin-bottom:1rem">
+        <svg width="160" height="160" viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/>
+          <circle cx="80" cy="80" r="70" fill="none"
+                  stroke="{% if result.status == 'pass' %}#00e676{% else %}#ff6584{% endif %}"
+                  stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="{{ result.percentage|floatformat:0|add:'0' }},100"
+                  stroke-dashoffset="25"
+                  style="transform:rotate(-90deg);transform-origin:80px 80px;
+                         stroke-dasharray:{{ result.percentage|floatformat:0 }},{% widthratio result.percentage 100 439 %}"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:{% if result.status == 'pass' %}var(--green){% else %}var(--accent3){% endif %}">
+            {{ result.percentage|floatformat:1 }}%
+          </div>
+          <div style="font-size:.75rem;color:var(--muted)">Score</div>
+        </div>
+      </div>
+      <div class="row g-3 text-center">
+        <div class="col-4">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--accent)">{{ result.score }}/{{ result.total_marks }}</div>
+          <div style="font-size:.75rem;color:var(--muted)">Marks</div>
+        </div>
+        <div class="col-4">
+          <div style="font-size:1.4rem;font-weight:800;color:{% if result.status == 'pass' %}var(--green){% else %}var(--accent3){% endif %}">
+            {{ result.status|upper }}
+          </div>
+          <div style="font-size:.75rem;color:var(--muted)">Status</div>
+        </div>
+        <div class="col-4">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--gold)">{{ result.attempt_number }}</div>
+          <div style="font-size:.75rem;color:var(--muted)">Attempt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Feedback -->
+{% if result.ai_feedback %}
+<div class="glass p-4 mb-4" style="border-radius:20px;border-left:4px solid var(--accent)" data-aos="fade-up">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <i class="fas fa-robot" style="color:var(--accent)"></i>
+    <h3 style="font-weight:700;margin:0;font-size:1rem">AI Personalised Feedback</h3>
+  </div>
+  <p style="color:var(--muted);line-height:1.7;margin:0">{{ result.ai_feedback }}</p>
+</div>
+{% endif %}
+
+<!-- Answer Review -->
+<div class="glass p-4" style="border-radius:20px" data-aos="fade-up">
+  <h2 class="section-title">📝 Answer Review</h2>
+  {% for ans in answers %}
+  <div class="p-3 mb-3 glass" style="border-radius:14px;border-left:4px solid {% if ans.is_correct %}var(--green){% else %}var(--accent3){% endif %}">
+    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+      <div style="font-weight:600;font-size:.9rem">Q{{ forloop.counter }}: {{ ans.question.question_text }}</div>
+      <span class="badge" style="flex-shrink:0;border-radius:50px;
+        {% if ans.is_correct %}background:rgba(0,230,118,.15);color:#00e676{% else %}background:rgba(255,101,132,.15);color:#ff6584{% endif %}">
+        {% if ans.is_correct %}✓ +{{ ans.marks_obtained }}{% else %}✗ 0{% endif %}
+      </span>
+    </div>
+    <div style="font-size:.85rem">
+      <span style="color:var(--muted)">Your answer: </span>
+      <span style="color:{% if ans.is_correct %}var(--green){% else %}var(--accent3){% endif %}">{{ ans.given_answer|default:"(no answer)" }}</span>
+    </div>
+    {% if not ans.is_correct %}
+    <div style="font-size:.85rem;margin-top:.2rem">
+      <span style="color:var(--muted)">Correct: </span>
+      <span style="color:var(--green)">{{ ans.question.correct_answer }}</span>
+    </div>
+    {% endif %}
+    {% if ans.question.explanation %}
+    <div style="font-size:.8rem;color:var(--muted);margin-top:.4rem;padding:.5rem .75rem;background:rgba(255,255,255,.03);border-radius:8px">
+      <i class="fas fa-lightbulb me-1" style="color:var(--gold)"></i>{{ ans.question.explanation }}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="text-center mt-4 d-flex justify-content-center gap-3" data-aos="fade-up">
+  <a href="{% url 'exam_list' %}" class="btn-outline-glow btn">← Back to Exams</a>
+  <a href="{% url 'dashboard' %}" class="btn-primary-glow btn">Dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ module.title }} — AdaptLearn{% endblock %}
+{% block content %}
+<div class="mb-3" data-aos="fade-down">
+  <a href="{% url 'course_detail' slug=module.course.slug %}" style="color:var(--muted);font-size:.88rem">← {{ module.course.title }}</a>
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-top:.3rem">{{ module.title }}</h1>
+  <p style="color:var(--muted)">{{ module.description }}</p>
+</div>
+<div class="row g-4">
+  <div class="col-xl-8">
+    {% for mat in materials %}
+    <div class="glass p-4 mb-3" style="border-radius:20px" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+      <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+            {% if mat.material_type == 'video' %}background:rgba(255,101,132,.15){% elif mat.material_type == 'pdf' %}background:rgba(0,212,255,.15){% else %}background:rgba(108,99,255,.15){% endif %}">
+            <i class="fas {% if mat.material_type == 'video' %}fa-play{% elif mat.material_type == 'pdf' %}fa-file-pdf{% elif mat.material_type == 'quiz' %}fa-question{% else %}fa-file-alt{% endif %}"
+               style="{% if mat.material_type == 'video' %}color:var(--accent3){% elif mat.material_type == 'pdf' %}color:var(--accent2){% else %}color:var(--accent){% endif %}"></i>
+          </div>
+          <div>
+            <h3 style="font-weight:700;font-size:1rem;margin:0">{{ mat.title }}</h3>
+            <span style="font-size:.75rem;color:var(--muted)">{{ mat.get_material_type_display }} · {{ mat.duration_mins }} min</span>
+          </div>
+        </div>
+        {% if mat.id in completed_ids %}
+        <span style="color:var(--green);font-size:.8rem;flex-shrink:0"><i class="fas fa-check-circle me-1"></i>Done</span>
+        {% else %}
+        <form method="post" action="{% url 'mark_material_complete' material_id=mat.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm" style="background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.3);border-radius:8px;font-size:.78rem">
+            Mark Complete
+          </button>
+        </form>
+        {% endif %}
+      </div>
+      {% if mat.video_url %}
+      <div style="border-radius:12px;overflow:hidden;margin-bottom:.8rem">
+        <iframe src="{{ mat.video_url }}" style="width:100%;height:300px;border:none" allowfullscreen></iframe>
+      </div>
+      {% endif %}
+      {% if mat.content %}
+      <div style="font-size:.9rem;color:var(--muted);line-height:1.7">{{ mat.content|safe }}</div>
+      {% endif %}
+      {% if mat.file %}
+      <a href="{{ mat.file.url }}" class="btn-outline-glow btn btn-sm mt-2" download>
+        <i class="fas fa-download me-2"></i>Download File
+      </a>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div class="glass p-4 text-center" style="color:var(--muted)"><p>No materials in this module yet.</p></div>
+    {% endfor %}
+  </div>
+  <div class="col-xl-4">
+    <div class="glass p-4 sticky-top" style="top:84px;border-radius:20px">
+      <h3 style="font-weight:700;margin-bottom:1rem">Module Progress</h3>
+      {% with total=materials|length %}
+      {% with done=completed_ids|length %}
+      <div class="progress-glow mb-2"><div class="bar" style="width:{% if total %}{{ done|floatformat:0 }}{% else %}0{% endif %}%"></div></div>
+      <p style="font-size:.82rem;color:var(--muted)">{{ done }} of {{ total }} materials completed</p>
+      {% endwith %}{% endwith %}
+      <div class="divider"></div>
+      {% for mat in materials %}
+      <div class="d-flex align-items-center gap-2 mb-2 p-2 glass" style="border-radius:10px">
+        <i class="fas {% if mat.id in completed_ids %}fa-check-circle{% else %}fa-circle{% endif %}"
+           style="{% if mat.id in completed_ids %}color:var(--green){% else %}color:var(--muted){% endif %};font-size:.85rem"></i>
+        <span style="font-size:.82rem">{{ mat.title|truncatechars:30 }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

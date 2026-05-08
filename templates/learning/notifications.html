@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — AdaptLearn{% endblock %}
+{% block content %}
+<div class="mb-4" data-aos="fade-down">
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800">🔔 <span class="gradient-text">Notifications</span></h1>
+</div>
+<div class="glass p-4" style="border-radius:24px">
+  {% for n in notifications %}
+  <div class="d-flex align-items-start gap-3 p-3 mb-2 glass {% if not n.is_read %}border-start border-3{% endif %}"
+       style="border-radius:14px;{% if not n.is_read %}border-color:var(--accent)!important{% endif %}">
+    <div style="width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+      {% if n.notif_type == 'enrollment' %}background:rgba(108,99,255,.2){% elif n.notif_type == 'result' %}background:rgba(0,230,118,.2){% elif n.notif_type == 'payment' %}background:rgba(255,215,0,.2){% elif n.notif_type == 'achievement' %}background:rgba(255,107,53,.2){% else %}background:rgba(0,212,255,.2){% endif %}">
+      <i class="fas {% if n.notif_type == 'enrollment' %}fa-graduation-cap{% elif n.notif_type == 'result' %}fa-trophy{% elif n.notif_type == 'payment' %}fa-credit-card{% elif n.notif_type == 'achievement' %}fa-star{% else %}fa-bell{% endif %}"
+         style="{% if n.notif_type == 'enrollment' %}color:var(--accent){% elif n.notif_type == 'result' %}color:var(--green){% elif n.notif_type == 'payment' %}color:var(--gold){% else %}color:var(--accent2){% endif %}"></i>
+    </div>
+    <div class="flex-grow-1">
+      <div style="font-weight:600;margin-bottom:.2rem">{{ n.title }}</div>
+      <div style="font-size:.87rem;color:var(--muted)">{{ n.message }}</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem">{{ n.created_at|timesince }} ago</div>
+    </div>
+    {% if not n.is_read %}
+    <div style="width:8px;height:8px;background:var(--accent);border-radius:50%;margin-top:.4rem;flex-shrink:0"></div>
+    {% endif %}
+  </div>
+  {% empty %}
+  <div class="text-center py-5" style="color:var(--muted)">
+    <i class="fas fa-bell-slash fa-3x mb-3"></i>
+    <h3>All caught up!</h3>
+    <p>No notifications to show.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

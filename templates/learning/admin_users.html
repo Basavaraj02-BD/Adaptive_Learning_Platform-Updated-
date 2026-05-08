@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users — Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down">
+  <div>
+    <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800">👥 Manage <span class="gradient-text">Users</span></h1>
+    <p style="color:var(--muted)">{{ users.count }} total users</p>
+  </div>
+</div>
+<div class="glass p-4" style="border-radius:24px" data-aos="fade-up">
+  <div style="overflow-x:auto">
+    <table class="glass-table">
+      <thead><tr><th>#</th><th>User</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="color:var(--muted)">{{ forloop.counter }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem">
+                {{ u.first_name|slice:":1"|upper|default:u.username|slice:":1"|upper }}
+              </div>
+              <div>
+                <div style="font-weight:600">{{ u.get_full_name|default:u.username }}</div>
+                <div style="font-size:.75rem;color:var(--muted)">@{{ u.username }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:var(--muted)">{{ u.email }}</td>
+          <td>
+            {% if u.is_superuser %}
+            <span style="background:rgba(255,215,0,.15);color:#ffd700;border-radius:50px;padding:.2rem .6rem;font-size:.78rem">Admin</span>
+            {% elif u.profile.role == 'instructor' %}
+            <span style="background:rgba(0,212,255,.15);color:var(--accent2);border-radius:50px;padding:.2rem .6rem;font-size:.78rem">Instructor</span>
+            {% else %}
+            <span style="background:rgba(108,99,255,.15);color:var(--accent);border-radius:50px;padding:.2rem .6rem;font-size:.78rem">Student</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.82rem;color:var(--muted)">{{ u.date_joined|date:"d M Y" }}</td>
+          <td>
+            <span style="{% if u.is_active %}color:var(--green){% else %}color:var(--accent3){% endif %};font-size:.85rem">
+              {% if u.is_active %}● Active{% else %}○ Inactive{% endif %}
+            </span>
+          </td>
+          <td>
+            {% if not u.is_superuser %}
+            <a href="{% url 'admin_toggle_user' user_id=u.id %}"
+               class="btn btn-sm"
+               style="{% if u.is_active %}background:rgba(255,101,132,.12);color:#ff6584;border:1px solid rgba(255,101,132,.3){% else %}background:rgba(0,230,118,.12);color:#00e676;border:1px solid rgba(0,230,118,.3){% endif %};border-radius:8px;font-size:.78rem">
+              {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+            </a>
+            {% else %}
+            <span style="font-size:.75rem;color:var(--muted)">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

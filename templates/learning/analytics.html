@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+{% block title %}Analytics — AdaptLearn{% endblock %}
+
+{% block extra_css %}
+<style>
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    height: 100%;
+  }
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  canvas { max-width: 100%; }
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .65rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .88rem;
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    width: 120px;
+  }
+  .metric-bar .fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .heatmap-cell {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+    margin: 1px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4" data-aos="fade-down">
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800">
+    📊 <span class="gradient-text">Analytics</span>
+  </h1>
+  <p style="color:var(--muted)">Your learning performance at a glance</p>
+</div>
+
+<!-- Top KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3" data-aos="fade-up" data-aos-delay="0">
+    <div class="stat-card purple">
+      <div class="stat-icon" style="background:rgba(108,99,255,.2)"><i class="fas fa-graduation-cap" style="color:var(--accent)"></i></div>
+      <div class="stat-number gradient-text" data-count="{{ total_enrolled }}">{{ total_enrolled }}</div>
+      <div class="stat-label">Courses Enrolled</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3" data-aos="fade-up" data-aos-delay="60">
+    <div class="stat-card cyan">
+      <div class="stat-icon" style="background:rgba(0,212,255,.2)"><i class="fas fa-clipboard-check" style="color:var(--accent2)"></i></div>
+      <div class="stat-number" style="color:var(--accent2)" data-count="{{ total_exams }}">{{ total_exams }}</div>
+      <div class="stat-label">Exams Taken</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3" data-aos="fade-up" data-aos-delay="120">
+    <div class="stat-card gold">
+      <div class="stat-icon" style="background:rgba(255,215,0,.2)"><i class="fas fa-star" style="color:var(--gold)"></i></div>
+      <div class="stat-number" style="color:var(--gold)">{{ avg_score }}%</div>
+      <div class="stat-label">Average Score</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3" data-aos="fade-up" data-aos-delay="180">
+    <div class="stat-card green">
+      <div class="stat-icon" style="background:rgba(0,230,118,.2)"><i class="fas fa-trophy" style="color:var(--green)"></i></div>
+      <div class="stat-number" style="color:var(--green)">{{ pass_rate }}%</div>
+      <div class="stat-label">Pass Rate</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Score Trend Chart -->
+  <div class="col-xl-8" data-aos="fade-up" data-aos-delay="100">
+    <div class="chart-card">
+      <div class="chart-title">📈 Exam Score Trend</div>
+      <canvas id="scoreTrendChart" height="280"></canvas>
+    </div>
+  </div>
+
+  <!-- Subject Distribution -->
+  <div class="col-xl-4" data-aos="fade-up" data-aos-delay="150">
+    <div class="chart-card">
+      <div class="chart-title">🎯 Performance by Type</div>
+      <canvas id="typeChart" height="280"></canvas>
+    </div>
+  </div>
+
+  <!-- Course Progress -->
+  <div class="col-xl-6" data-aos="fade-up" data-aos-delay="100">
+    <div class="chart-card">
+      <div class="chart-title">📚 Course Progress</div>
+      {% for enr in enrollments %}
+      <div class="metric-row">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            {{ enr.course.title|truncatechars:32 }}
+          </div>
+          <div style="font-size:.75rem;color:var(--muted)">{{ enr.get_status_display }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-shrink:0;margin-left:1rem">
+          <div class="metric-bar">
+            <div class="fill" style="width:{{ enr.completion_percent }}%"></div>
+          </div>
+          <span style="font-size:.82rem;font-weight:700;color:var(--accent2);min-width:36px;text-align:right">
+            {{ enr.completion_percent|floatformat:0 }}%
+          </span>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--muted);font-size:.88rem">No enrollments yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Exam History Table -->
+  <div class="col-xl-6" data-aos="fade-up" data-aos-delay="150">
+    <div class="chart-card">
+      <div class="chart-title">🏆 Recent Exam Results</div>
+      <div style="overflow-x:auto">
+        <table class="glass-table">
+          <thead>
+            <tr><th>Exam</th><th>Score</th><th>Status</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            {% for r in exam_results %}
+            <tr>
+              <td style="font-size:.85rem;font-weight:600">{{ r.exam.title|truncatechars:24 }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <div style="width:50px;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+                    <div style="width:{{ r.percentage|floatformat:0 }}%;height:100%;background:{% if r.percentage >= 70 %}var(--green){% elif r.percentage >= 40 %}var(--gold){% else %}var(--accent3){% endif %};border-radius:3px"></div>
+                  </div>
+                  <span style="font-size:.82rem;font-weight:700">{{ r.percentage|floatformat:1 }}%</span>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge status-{{ r.status }}">{{ r.status|upper }}</span>
+              </td>
+              <td style="font-size:.78rem;color:var(--muted)">{{ r.submitted_at|date:"d M" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="color:var(--muted);text-align:center;padding:2rem">No exams taken yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skill Radar -->
+  <div class="col-xl-5" data-aos="fade-up" data-aos-delay="100">
+    <div class="chart-card">
+      <div class="chart-title">🌐 Skill Distribution</div>
+      <canvas id="radarChart" height="280"></canvas>
+    </div>
+  </div>
+
+  <!-- Activity Calendar -->
+  <div class="col-xl-7" data-aos="fade-up" data-aos-delay="150">
+    <div class="chart-card">
+      <div class="chart-title">📅 Activity Overview (Last 12 Weeks)</div>
+      <div id="activityHeatmap" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:.5rem"></div>
+      <div class="d-flex align-items-center gap-2 mt-3" style="font-size:.75rem;color:var(--muted)">
+        <span>Less</span>
+        <div class="heatmap-cell" style="background:rgba(108,99,255,.1)"></div>
+        <div class="heatmap-cell" style="background:rgba(108,99,255,.3)"></div>
+        <div class="heatmap-cell" style="background:rgba(108,99,255,.55)"></div>
+        <div class="heatmap-cell" style="background:rgba(108,99,255,.8)"></div>
+        <span>More</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  // Chart.js global defaults for dark theme
+  Chart.defaults.color = '#6b7280';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+  const accent  = '#6c63ff';
+  const accent2 = '#00d4ff';
+  const accent3 = '#ff6584';
+  const gold    = '#ffd700';
+  const green   = '#00e676';
+
+  // ── Score Trend ──
+  const scores = {{ score_data|safe }};
+  new Chart(document.getElementById('scoreTrendChart'), {
+    type: 'line',
+    data: {
+      labels: scores.map(s => s.label),
+      datasets: [{
+        label: 'Score (%)',
+        data: scores.map(s => s.score),
+        borderColor: accent,
+        backgroundColor: 'rgba(108,99,255,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: accent,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        fill: true,
+        tension: 0.4,
+      }, {
+        label: 'Pass Mark',
+        data: scores.map(() => {{ pass_mark }}),
+        borderColor: 'rgba(0,230,118,0.4)',
+        borderWidth: 1.5,
+        borderDash: [6, 4],
+        pointRadius: 0,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#a5b4c8', usePointStyle: true, pointStyleWidth: 10 } },
+        tooltip: {
+          backgroundColor: '#111827',
+          borderColor: 'rgba(255,255,255,.08)',
+          borderWidth: 1,
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` }
+        }
+      },
+      scales: {
+        y: {
+          min: 0, max: 100,
+          ticks: { callback: v => v + '%', stepSize: 20 },
+          grid: { color: 'rgba(255,255,255,.05)' }
+        },
+        x: { grid: { color: 'rgba(255,255,255,.04)' } }
+      }
+    }
+  });
+
+  // ── Type Doughnut ──
+  const typeData = {{ type_data|safe }};
+  new Chart(document.getElementById('typeChart'), {
+    type: 'doughnut',
+    data: {
+      labels: typeData.map(t => t.label),
+      datasets: [{
+        data: typeData.map(t => t.count),
+        backgroundColor: [accent, accent2, accent3, gold, green],
+        borderColor: '#0d1220',
+        borderWidth: 3,
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      cutout: '68%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#a5b4c8', padding: 12, usePointStyle: true }
+        },
+        tooltip: {
+          backgroundColor: '#111827',
+          borderColor: 'rgba(255,255,255,.08)',
+          borderWidth: 1,
+        }
+      }
+    }
+  });
+
+  // ── Radar ──
+  const radarData = {{ radar_data|safe }};
+  new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: radarData.labels,
+      datasets: [{
+        label: 'Your Score',
+        data: radarData.values,
+        borderColor: accent,
+        backgroundColor: 'rgba(108,99,255,0.15)',
+        pointBackgroundColor: accent,
+        borderWidth: 2,
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { color: '#6b7280', stepSize: 25, backdropColor: 'transparent' },
+          grid: { color: 'rgba(255,255,255,.07)' },
+          pointLabels: { color: '#a5b4c8', font: { size: 11 } }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // ── Activity Heatmap ──
+  const heatmap = document.getElementById('activityHeatmap');
+  const activityData = {{ activity_data|safe }};
+  for (let week = 0; week < 12; week++) {
+    const col = document.createElement('div');
+    col.style.cssText = 'display:flex;flex-direction:column;gap:3px';
+    for (let day = 0; day < 7; day++) {
+      const idx = week * 7 + day;
+      const val = activityData[idx] || 0;
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      cell.style.background = val === 0 ? 'rgba(255,255,255,0.04)'
+        : val === 1 ? 'rgba(108,99,255,0.25)'
+        : val === 2 ? 'rgba(108,99,255,0.5)'
+        : 'rgba(108,99,255,0.8)';
+      cell.title = `${val} activities`;
+      col.appendChild(cell);
+    }
+    heatmap.appendChild(col);
+  }
+</script>
+{% endblock %}

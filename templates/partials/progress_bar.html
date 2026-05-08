@@ -1,0 +1,4 @@
+<div class="progress-glow {% if height %}progress-thin{% endif %}" style="height:{{ height|default:8 }}px">
+  <div class="bar {% if color == 'gold' %}gold{% elif color == 'green' %}green{% elif color == 'red' %}red{% endif %}"
+       style="width:{{ value|default:0 }}%"></div>
+</div>

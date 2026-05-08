@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Search: {{ query }} — AdaptLearn{% endblock %}
+{% block content %}
+<div class="mb-4" data-aos="fade-down">
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800">
+    🔍 Search Results
+  </h1>
+  <p style="color:var(--muted)">
+    {% if query %}
+      {% if courses %}{{ courses.count }} result{{ courses.count|pluralize }} for "<span style="color:var(--accent)">{{ query }}</span>"
+      {% else %}No results for "<span style="color:var(--accent3)">{{ query }}</span>"{% endif %}
+    {% else %}Enter a search term above{% endif %}
+  </p>
+</div>
+
+<!-- Search Bar -->
+<form method="get" action="{% url 'search' %}" class="mb-4 d-flex gap-2" data-aos="fade-up">
+  <div style="position:relative;flex:1">
+    <i class="fas fa-search" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--muted)"></i>
+    <input type="text" name="q" value="{{ query }}" class="glass-input" style="padding-left:2.8rem!important;width:100%" placeholder="Search courses, topics, tags…">
+  </div>
+  <button type="submit" class="btn-primary-glow btn"><i class="fas fa-search me-2"></i>Search</button>
+</form>
+
+{% if courses %}
+<div class="row g-4">
+  {% for course in courses %}
+  <div class="col-sm-6 col-xl-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+    <div class="course-card h-100">
+      <div style="height:150px;background:linear-gradient(135deg,{% cycle 'rgba(108,99,255,.4),rgba(0,212,255,.3)' 'rgba(255,101,132,.4),rgba(255,215,0,.3)' 'rgba(0,212,255,.4),rgba(0,230,118,.3)' %});display:flex;align-items:center;justify-content:center;font-size:3rem">
+        {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover">{% else %}{% cycle '📊' '🧠' '💻' '🚀' '🎯' %}{% endif %}
+      </div>
+      <div class="card-body p-3">
+        <div class="d-flex gap-2 mb-2">
+          <span class="badge-difficulty badge-{{ course.difficulty }}">{{ course.get_difficulty_display }}</span>
+          {% if course.is_free %}<span style="background:rgba(0,230,118,.15);color:var(--green);border-radius:50px;padding:.2rem .6rem;font-size:.72rem;font-weight:700">FREE</span>{% endif %}
+        </div>
+        <h3 style="font-weight:700;font-size:.98rem;margin-bottom:.4rem">{{ course.title }}</h3>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:.75rem">{{ course.description|truncatechars:90 }}</p>
+        <div class="d-flex align-items-center justify-content-between">
+          <span style="font-weight:700">{% if course.is_free %}Free{% else %}₹{{ course.price }}{% endif %}</span>
+          <a href="{% url 'course_detail' slug=course.slug %}" class="btn-primary-glow btn btn-sm">View →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% elif query %}
+<div class="text-center py-5 glass p-4" style="border-radius:24px">
+  <div style="font-size:4rem;margin-bottom:1rem">🔍</div>
+  <h3 style="font-family:'Syne',sans-serif">No courses found</h3>
+  <p style="color:var(--muted);margin-bottom:1.5rem">Try different keywords or browse all courses.</p>
+  <a href="{% url 'course_list' %}" class="btn-primary-glow btn"><i class="fas fa-graduation-cap me-2"></i>Browse All Courses</a>
+</div>
+{% endif %}
+{% endblock %}

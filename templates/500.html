@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>500 — Server Error | AdaptLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    :root{--bg:#080c14;--accent:#ff6584;--accent2:#ffd700;--text:#e8eaf6;--muted:#6b7280}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(255,101,132,.1) 0%,transparent 60%);pointer-events:none}
+    .container{position:relative;z-index:1;padding:2rem}
+    .icon{font-size:5rem;margin-bottom:1rem;animation:shake 2s infinite}
+    @keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px)}20%,40%,60%,80%{transform:translateX(4px)}}
+    .code{font-family:'Syne',sans-serif;font-size:clamp(5rem,15vw,10rem);font-weight:800;line-height:1;background:linear-gradient(135deg,#ff6584,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    h1{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin:.5rem 0}
+    p{color:var(--muted);font-size:1rem;margin-bottom:2rem;max-width:420px;margin-left:auto;margin-right:auto;line-height:1.7}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,#ff6584,#ff9a44);border:none;color:#fff;padding:.7rem 1.8rem;border-radius:50px;font-size:.95rem;font-weight:600;cursor:pointer;text-decoration:none;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 20px rgba(255,101,132,.35);margin:.3rem}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,101,132,.55);color:#fff}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">⚠️</div>
+    <div class="code">500</div>
+    <h1>Internal Server Error</h1>
+    <p>Something went wrong on our end. Our team has been notified. Please try again in a moment.</p>
+    <a href="/" class="btn"><i class="fas fa-home"></i> Return Home</a>
+  </div>
+</body>
+</html>

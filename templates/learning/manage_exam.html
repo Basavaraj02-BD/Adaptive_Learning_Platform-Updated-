@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Manage Exam — {{ exam.title }}{% endblock %}
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-start" data-aos="fade-down">
+  <div>
+    <a href="{% url 'course_detail' slug=exam.course.slug %}" style="color:var(--muted);font-size:.88rem">← {{ exam.course.title }}</a>
+    <h1 style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-top:.3rem">📋 {{ exam.title }}</h1>
+    <div class="d-flex gap-3 mt-1" style="font-size:.82rem;color:var(--muted)">
+      <span><i class="fas fa-clock me-1"></i>{{ exam.duration_mins }} min</span>
+      <span><i class="fas fa-star me-1" style="color:var(--gold)"></i>{{ exam.total_marks }} marks</span>
+      <span><i class="fas fa-question me-1"></i>{{ questions.count }} questions</span>
+    </div>
+  </div>
+  <a href="{% url 'add_question' exam_id=exam.id %}" class="btn-primary-glow btn">
+    <i class="fas fa-plus me-2"></i>Add Question
+  </a>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <div class="glass p-4" style="border-radius:24px" data-aos="fade-up">
+      {% for q in questions %}
+      <div class="p-3 mb-3 glass" style="border-radius:14px;border-left:3px solid
+        {% if q.difficulty == 'easy' %}var(--green){% elif q.difficulty == 'medium' %}var(--gold){% else %}var(--accent3){% endif %}">
+        <div class="d-flex justify-content-between gap-2 mb-2">
+          <div>
+            <span style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Q{{ forloop.counter }} · {{ q.get_question_type_display }}</span>
+            <div style="font-weight:600;font-size:.92rem;margin-top:.15rem">{{ q.question_text }}</div>
+          </div>
+          <div class="d-flex gap-1 flex-shrink-0">
+            <span class="badge-difficulty badge-{{ q.difficulty }}">{{ q.get_difficulty_display }}</span>
+            <span style="background:rgba(108,99,255,.12);color:var(--accent);border-radius:50px;padding:.2rem .6rem;font-size:.72rem;font-weight:700">{{ q.marks }}m</span>
+          </div>
+        </div>
+        {% if q.question_type == 'mcq' %}
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          {% for opt in q.get_options %}
+          <span style="background:{% if opt == q.correct_answer %}rgba(0,230,118,.12){% else %}rgba(255,255,255,.05){% endif %};
+                       border:1px solid {% if opt == q.correct_answer %}rgba(0,230,118,.4){% else %}var(--border){% endif %};
+                       border-radius:8px;padding:.25rem .65rem;font-size:.8rem;
+                       color:{% if opt == q.correct_answer %}var(--green){% else %}var(--muted){% endif %}">
+            {% if opt == q.correct_answer %}<i class="fas fa-check me-1"></i>{% endif %}{{ opt }}
+          </span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div style="font-size:.82rem;color:var(--muted)">
+          Correct: <span style="color:var(--green)">{{ q.correct_answer }}</span>
+        </div>
+        {% endif %}
+        {% if q.explanation %}
+        <div style="font-size:.78rem;color:var(--muted);margin-top:.4rem;padding:.4rem .7rem;background:rgba(255,255,255,.03);border-radius:8px">
+          <i class="fas fa-lightbulb me-1" style="color:var(--gold)"></i>{{ q.explanation }}
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <h3>No questions yet</h3>
+        <p>Add your first question to this exam.</p>
+        <a href="{% url 'add_question' exam_id=exam.id %}" class="btn-primary-glow btn mt-2">
+          <i class="fas fa-plus me-2"></i>Add Question
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="col-xl-4">
+    <div class="glass p-4" style="border-radius:24px" data-aos="fade-left">
+      <h3 class="section-title">⚙️ Exam Details</h3>
+      {% for label, val in details %}{% empty %}{% endfor %}
+      <div class="metric-row d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted)">Type</span><span style="font-weight:600">{{ exam.get_exam_type_display }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted)">Duration</span><span style="font-weight:600">{{ exam.duration_mins }} min</span>
+      </div>
+      <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted)">Total Marks</span><span style="font-weight:600">{{ exam.total_marks }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted)">Pass Marks</span><span style="font-weight:600;color:var(--green)">{{ exam.pass_marks }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border)">
+        <span style="color:var(--muted)">Max Attempts</span><span style="font-weight:600">{{ exam.max_attempts }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2">
+        <span style="color:var(--muted)">Status</span>
+        <span class="status-badge {% if exam.is_active %}status-active{% else %}status-archived{% endif %}">
+          {% if exam.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+      </div>
+      <div class="divider"></div>
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex justify-content-between" style="font-size:.85rem">
+          <span style="color:var(--muted)">Questions added</span>
+          <span style="font-weight:700;color:var(--accent)">{{ questions.count }}</span>
+        </div>
+        <div class="progress-glow"><div class="bar" style="width:{% widthratio questions.count exam.total_marks 100 %}%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
