@@ -1,5 +1,6 @@
 import phone
 from django import forms
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import UserProfile, Course, Module, LearningMaterial, Exam, Question
@@ -89,15 +90,13 @@ class AdminRegistrationForm(UserCreationForm):
         help_text='Contact system administrator for this key.',
     )
 
-    ADMIN_SECRET = 'ADAPTIVE_ADMIN_2024'
-
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'username', 'email', 'password1', 'password2', 'admin_secret_key']
 
     def clean_admin_secret_key(self):
         key = self.cleaned_data.get('admin_secret_key')
-        if key != self.ADMIN_SECRET:
+        if key != settings.ADMIN_SECRET_KEY:
             raise forms.ValidationError('Invalid admin secret key.')
         return key
 

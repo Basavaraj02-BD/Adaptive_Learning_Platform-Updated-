@@ -3,10 +3,6 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import json
 
-
-# ─────────────────────────────────────────
-# 1. User Profile (extends built-in User)
-# ─────────────────────────────────────────
 class UserProfile(models.Model):
     ROLE_CHOICES = [('student', 'Student'), ('instructor', 'Instructor'), ('admin', 'Admin')]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -31,9 +27,7 @@ class UserProfile(models.Model):
         return '/static/images/default_avatar.png'
 
 
-# ─────────────────────────────────────────
-# 2. Course Table
-# ─────────────────────────────────────────
+
 class Course(models.Model):
     DIFFICULTY = [('beginner','Beginner'),('intermediate','Intermediate'),('advanced','Advanced')]
     STATUS     = [('draft','Draft'),('published','Published'),('archived','Archived')]
@@ -67,9 +61,7 @@ class Course(models.Model):
         return '/static/images/default_course.png'
 
 
-# ─────────────────────────────────────────
-# 3. Module Table
-# ─────────────────────────────────────────
+
 class Module(models.Model):
     course      = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
     title       = models.CharField(max_length=200)
@@ -87,9 +79,7 @@ class Module(models.Model):
         return f"{self.course.title} › {self.title}"
 
 
-# ─────────────────────────────────────────
-# 4. Learning Material Table
-# ─────────────────────────────────────────
+
 class LearningMaterial(models.Model):
     TYPE_CHOICES = [
         ('video','Video'), ('article','Article'), ('pdf','PDF'),
@@ -113,9 +103,7 @@ class LearningMaterial(models.Model):
         return f"{self.module.title} › {self.title}"
 
 
-# ─────────────────────────────────────────
-# 5. Enrollment Table
-# ─────────────────────────────────────────
+
 class Enrollment(models.Model):
     STATUS_CHOICES = [
         ('active','Active'), ('completed','Completed'),
@@ -136,9 +124,7 @@ class Enrollment(models.Model):
         return f"{self.student.username} → {self.course.title}"
 
 
-# ─────────────────────────────────────────
-# 6. Student Progress Table
-# ─────────────────────────────────────────
+
 class StudentProgress(models.Model):
     student    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='progress')
     material   = models.ForeignKey(LearningMaterial, on_delete=models.CASCADE, related_name='progress')
@@ -155,9 +141,7 @@ class StudentProgress(models.Model):
         return f"{self.student.username} – {self.material.title}"
 
 
-# ─────────────────────────────────────────
-# 7. Exam Table
-# ─────────────────────────────────────────
+
 class Exam(models.Model):
     TYPE_CHOICES = [('module','Module Exam'),('final','Final Exam'),('practice','Practice')]
     course      = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='exams')
@@ -179,9 +163,7 @@ class Exam(models.Model):
         return f"{self.course.title} – {self.title}"
 
 
-# ─────────────────────────────────────────
-# 8. Question Table
-# ─────────────────────────────────────────
+
 class Question(models.Model):
     TYPE_CHOICES = [
         ('mcq','Multiple Choice'), ('true_false','True/False'),
@@ -198,9 +180,9 @@ class Question(models.Model):
     image       = models.ImageField(upload_to='question_images/', null=True, blank=True)
     order       = models.PositiveIntegerField(default=0)
 
-    # MCQ options stored as JSON: ["Option A","Option B","Option C","Option D"]
+
     options     = models.TextField(blank=True, default='[]')
-    correct_answer = models.TextField()          # exact text of correct answer / option
+    correct_answer = models.TextField()
 
     class Meta:
         ordering = ['order']
@@ -218,9 +200,7 @@ class Question(models.Model):
         self.options = json.dumps(options_list)
 
 
-# ─────────────────────────────────────────
-# 9. Exam Result Table
-# ─────────────────────────────────────────
+
 class ExamResult(models.Model):
     STATUS_CHOICES = [('pass','Pass'),('fail','Fail'),('pending','Pending')]
 
@@ -243,9 +223,7 @@ class ExamResult(models.Model):
         return f"{self.student.username} – {self.exam.title} ({self.percentage:.1f}%)"
 
 
-# ─────────────────────────────────────────
-# 10. Student Answer Table
-# ─────────────────────────────────────────
+
 class StudentAnswer(models.Model):
     result      = models.ForeignKey(ExamResult, on_delete=models.CASCADE, related_name='answers')
     question    = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='student_answers')
@@ -259,9 +237,7 @@ class StudentAnswer(models.Model):
         return f"{self.result.student.username} → Q{self.question.id}"
 
 
-# ─────────────────────────────────────────
-# 11. Payment Table
-# ─────────────────────────────────────────
+
 class Payment(models.Model):
     STATUS_CHOICES = [
         ('pending','Pending'), ('completed','Completed'),
@@ -287,9 +263,7 @@ class Payment(models.Model):
         return f"{self.student.username} – {self.course.title} – ₹{self.amount}"
 
 
-# ─────────────────────────────────────────
-# 12. Notification Table
-# ─────────────────────────────────────────
+
 class Notification(models.Model):
     TYPE_CHOICES = [
         ('enrollment','Enrollment'), ('exam','Exam'),
@@ -311,9 +285,6 @@ class Notification(models.Model):
         return f"→ {self.recipient.username}: {self.title}"
 
 
-# ─────────────────────────────────────────
-# Course Review / Rating
-# ─────────────────────────────────────────
 class CourseReview(models.Model):
     course    = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='reviews')
     student   = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews')
@@ -331,9 +302,6 @@ class CourseReview(models.Model):
         return f"{self.student.username} → {self.course.title} ({self.rating}★)"
 
 
-# ─────────────────────────────────────────
-# Discussion Forum
-# ─────────────────────────────────────────
 class DiscussionThread(models.Model):
     course      = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='threads')
     author      = models.ForeignKey(User, on_delete=models.CASCADE, related_name='threads')
@@ -366,9 +334,7 @@ class DiscussionReply(models.Model):
         return f"Reply by {self.author.username} on {self.thread.title}"
 
 
-# ─────────────────────────────────────────
-# Chatbot Message (bonus)
-# ─────────────────────────────────────────
+
 class ChatMessage(models.Model):
     user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_messages')
     role       = models.CharField(max_length=10, choices=[('user','User'),('assistant','Assistant')])

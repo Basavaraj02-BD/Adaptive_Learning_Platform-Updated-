@@ -81,6 +81,12 @@ def user_register(request):
 def admin_register(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+    
+    # Check if an admin already exists
+    if User.objects.filter(is_superuser=True).exists() or UserProfile.objects.filter(role='admin').exists():
+        messages.error(request, 'An admin is already registered. Only one admin is allowed on this platform.')
+        return redirect('user_login')
+
     if request.method == 'POST':
         form = AdminRegistrationForm(request.POST)
         if form.is_valid():
@@ -478,7 +484,7 @@ def chatbot_api(request):
             import anthropic
             client = anthropic.Anthropic(api_key=api_key)
             response = client.messages.create(
-                model='claude-opus-4-5',
+                model='claude-3-5-sonnet-20240620',
                 max_tokens=1024,
                 system=(
                     "You are AdaptBot, an intelligent learning assistant for the AdaptLearn platform. "
@@ -912,19 +918,7 @@ def post_reply(request, thread_id):
 
 
 # ══════════════════════════════════════════
-#  FORGOT PASSWORD (simple flow)
-# ══════════════════════════════════════════
-def forgot_password(request):
-    if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
-        user = User.objects.filter(email=email).first()
-        if user:
-            # In production: send email with reset link
-            messages.info(request, f'If "{email}" exists, a reset link has been sent. Check your inbox.')
-        else:
-            messages.info(request, f'If "{email}" exists, a reset link has been sent.')
-        return redirect('user_login')
-    return render(request, 'registration/forgot_password.html')
+
 
 
 # ══════════════════════════════════════════

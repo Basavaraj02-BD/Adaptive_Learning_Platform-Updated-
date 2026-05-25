@@ -8,9 +8,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-adaptive-learning-platform-key-2024')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -99,3 +99,9 @@ STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', 'pk_test_your_key')
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'sk_test_your_key')
 
 AUTH_USER_MODEL = 'auth.User'
+
+# Admin Secret Key
+ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY', 'ADAPTIVE_ADMIN_2024')
+
+# Email Backend for Password Reset (outputs to console during development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
