@@ -508,15 +508,16 @@
         </div>
       </div>
 
-      <div class="sidebar-section">Main</div>
+      {% if request.user.profile.role != 'instructor' and request.user.profile.role != 'admin' %}
+      <div class="sidebar-section">Student Panel</div>
       <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         <i class="fas fa-th-large"></i> Dashboard
       </a>
       <a href="{% url 'course_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'course_list' %}active{% endif %}">
-        <i class="fas fa-graduation-cap"></i> Courses
+        <i class="fas fa-graduation-cap"></i> Browse Courses
       </a>
       <a href="{% url 'exam_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'exam_list' %}active{% endif %}">
-        <i class="fas fa-clipboard-list"></i> Exams
+        <i class="fas fa-clipboard-list"></i> My Exams
       </a>
       <a href="{% url 'leaderboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}">
         <i class="fas fa-trophy"></i> Leaderboard
@@ -527,8 +528,19 @@
       <a href="{% url 'chatbot' %}" class="sidebar-link {% if request.resolver_match.url_name == 'chatbot' %}active{% endif %}">
         <i class="fas fa-robot"></i> AI Chatbot
       </a>
+      {% endif %}
 
-     <div class="sidebar-section">Account</div>
+      {% if request.user.is_superuser or request.user.is_staff or request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+      <div class="sidebar-section">Instructor Panel</div>
+      <a href="{% url 'instructor_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'instructor_dashboard' %}active{% endif %}">
+        <i class="fas fa-chalkboard-teacher"></i> Dashboard
+      </a>
+      <a href="{% url 'create_course' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_course' %}active{% endif %}">
+        <i class="fas fa-plus-circle"></i> Create Course
+      </a>
+      {% endif %}
+
+      <div class="sidebar-section">Account</div>
       <a href="{% url 'profile' %}"
          class="sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
         <i class="fas fa-user-cog"></i> Profile
@@ -537,11 +549,12 @@
          class="sidebar-link {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
         <i class="fas fa-key"></i> Change Password
       </a>
+      {% if request.user.profile.role != 'instructor' and request.user.profile.role != 'admin' %}
       <a href="{% url 'progress_report' %}" class="sidebar-link">
         <i class="fas fa-download"></i> Export Progress
       </a>
+      {% endif %}
 
-      <!-- ✅ Notifications fixed — properly inside Account section -->
       <a href="{% url 'notifications' %}"
          class="sidebar-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
         <i class="fas fa-bell"></i> Notifications
@@ -552,16 +565,6 @@
         </span>
         {% endif %}
       </a>
-
-      {% if request.user.is_superuser or request.user.is_staff or request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
-      <div class="sidebar-section">Instructor</div>
-      <a href="{% url 'instructor_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'instructor_dashboard' %}active{% endif %}">
-        <i class="fas fa-chalkboard-teacher"></i> Instructor Panel
-      </a>
-      <a href="{% url 'create_course' %}" class="sidebar-link {% if request.resolver_match.url_name == 'create_course' %}active{% endif %}">
-        <i class="fas fa-plus-circle"></i> Create Course
-      </a>
-      {% endif %}
 
       {% if request.user.is_superuser %}
       <div class="sidebar-section">Admin</div>

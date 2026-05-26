@@ -49,7 +49,12 @@ def send_notification(recipient, title, message, notif_type='system', link=''):
 # ══════════════════════════════════════════
 def home(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        if is_admin(request.user):
+            return redirect('admin_dashboard')
+        elif is_instructor(request.user):
+            return redirect('instructor_dashboard')
+        else:
+            return redirect('dashboard')
     courses = Course.objects.filter(status='published')[:6]
     return render(request, 'learning/home.html', {'courses': courses})
 
@@ -106,15 +111,26 @@ def admin_register(request):
 # ══════════════════════════════════════════
 def user_login(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        if is_admin(request.user):
+            return redirect('admin_dashboard')
+        elif is_instructor(request.user):
+            return redirect('instructor_dashboard')
+        else:
+            return redirect('dashboard')
     if request.method == 'POST':
         form = UserLoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
             messages.success(request, f'Welcome back, {user.first_name or user.username}!')
-            next_url = request.GET.get('next', 'dashboard')
-            return redirect(next_url)
+            next_url = request.GET.get('next')
+            if next_url:
+                return redirect(next_url)
+            if is_admin(user):
+                return redirect('admin_dashboard')
+            elif is_instructor(user):
+                return redirect('instructor_dashboard')
+            return redirect('dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
     else:
