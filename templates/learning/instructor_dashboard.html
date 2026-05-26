@@ -104,9 +104,14 @@
         </div>
         <div class="d-flex gap-1 flex-shrink-0">
           <a href="{% url 'course_detail' slug=course.slug %}" class="btn btn-sm" style="background:rgba(0,212,255,.1);color:var(--accent2);border:1px solid rgba(0,212,255,.2);border-radius:8px;font-size:.75rem">View</a>
+          <a href="{% url 'edit_course' course_id=course.id %}" class="btn btn-sm" style="background:rgba(255,215,0,.1);color:var(--gold);border:1px solid rgba(255,215,0,.2);border-radius:8px;font-size:.75rem">Edit</a>
           {% for exam in course.exams.all|slice:":1" %}
           <a href="{% url 'manage_exam' exam_id=exam.id %}" class="btn btn-sm" style="background:rgba(108,99,255,.1);color:var(--accent);border:1px solid rgba(108,99,255,.2);border-radius:8px;font-size:.75rem">Exam</a>
           {% endfor %}
+          <form method="post" action="{% url 'delete_course' course_id=course.id %}" onsubmit="return confirm('Are you sure you want to delete this course? This action cannot be undone.');" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm" style="background:rgba(255,107,53,.1);color:#ff6b35;border:1px solid rgba(255,107,53,.2);border-radius:8px;font-size:.75rem">Delete</button>
+          </form>
         </div>
       </div>
       {% empty %}

@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+{% block title %}Edit Course — AdaptLearn{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: .75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .slug-preview {
+    font-size: .78rem;
+    color: var(--muted);
+    margin-top: .3rem;
+  }
+  .slug-preview span { color: var(--accent); }
+  .price-toggle { display: flex; gap: .5rem; }
+  .price-btn {
+    flex: 1; padding: .55rem; border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: transparent; color: var(--muted);
+    font-weight: 600; font-size: .85rem; cursor: pointer;
+    transition: all .2s;
+  }
+  .price-btn.active {
+    border-color: var(--accent);
+    background: rgba(108,99,255,.12);
+    color: var(--accent);
+  }
+  .tag-input-wrap { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+  .tag-chip {
+    background: rgba(108,99,255,.15); color: var(--accent);
+    border: 1px solid rgba(108,99,255,.3);
+    border-radius: 50px; padding: .2rem .7rem;
+    font-size: .78rem; display: flex; align-items: center; gap: .3rem;
+  }
+  .tag-chip button { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; font-size: .7rem; }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background: rgba(255,255,255,.02);
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(108,99,255,.06);
+  }
+  .preview-img { max-height: 180px; border-radius: 12px; object-fit: cover; width: 100%; margin-top: .75rem; }
+  .step-wizard {
+    display: flex; gap: 0; margin-bottom: 2rem;
+    background: rgba(255,255,255,.04); border: 1px solid var(--border);
+    border-radius: 14px; padding: .3rem;
+  }
+  .wizard-step {
+    flex: 1; text-align: center; padding: .6rem;
+    border-radius: 10px; font-size: .82rem; font-weight: 600;
+    color: var(--muted); cursor: pointer; transition: all .2s;
+  }
+  .wizard-step.active { background: var(--accent); color: #fff; }
+  .wizard-step.done { color: var(--green); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4" data-aos="fade-down">
+  <a href="{% url 'dashboard' %}" style="color:var(--muted);font-size:.88rem">← Back</a>
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;margin-top:.3rem">
+    ✏️ Edit <span class="gradient-text">Course</span>
+  </h1>
+  <p style="color:var(--muted)">Update the details below to save changes to your course</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="courseForm">
+  {% csrf_token %}
+  <div class="row g-4">
+    <div class="col-xl-8">
+      <!-- Basic Info -->
+      <div class="form-section" data-aos="fade-up">
+        <div class="form-section-title"><i class="fas fa-info-circle" style="color:var(--accent)"></i> Basic Information</div>
+        <div class="mb-3">
+          <label class="form-label">Course Title *</label>
+          {{ form.title }}
+          {% if form.title.errors %}<div style="color:var(--accent3);font-size:.78rem;margin-top:.25rem">{{ form.title.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">URL Slug *</label>
+          {{ form.slug }}
+          <div class="slug-preview">Preview: <span>adaptlearn.com/courses/<span id="slugPreview">your-slug</span></span></div>
+          {% if form.slug.errors %}<div style="color:var(--accent3);font-size:.78rem;margin-top:.25rem">{{ form.slug.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description *</label>
+          {{ form.description }}
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Difficulty Level</label>
+            {{ form.difficulty }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Language</label>
+            {{ form.language }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Duration (hours)</label>
+            {{ form.duration_hrs }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Status</label>
+            {{ form.status }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Thumbnail -->
+      <div class="form-section" data-aos="fade-up" data-aos-delay="50">
+        <div class="form-section-title"><i class="fas fa-image" style="color:var(--accent2)"></i> Course Thumbnail</div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('thumbnailInput').click()">
+          <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color:var(--muted)"></i>
+          <p style="color:var(--muted);font-size:.88rem">Drag & drop or click to upload<br><span style="font-size:.78rem">PNG, JPG up to 5MB · Recommended 1280×720</span></p>
+          <img id="thumbPreview" class="preview-img" style="display:none">
+        </div>
+        <input type="file" id="thumbnailInput" name="thumbnail" accept="image/*" style="display:none" onchange="previewThumb(this)">
+      </div>
+
+      <!-- Pricing -->
+      <div class="form-section" data-aos="fade-up" data-aos-delay="100">
+        <div class="form-section-title"><i class="fas fa-tag" style="color:var(--gold)"></i> Pricing</div>
+        <div class="price-toggle mb-3" id="priceToggle">
+          <button type="button" class="price-btn active" onclick="setPricing('free',this)">
+            <i class="fas fa-unlock me-1"></i> Free
+          </button>
+          <button type="button" class="price-btn" onclick="setPricing('paid',this)">
+            <i class="fas fa-rupee-sign me-1"></i> Paid
+          </button>
+        </div>
+        <div id="priceField" style="display:none">
+          <label class="form-label">Price (₹)</label>
+          {{ form.price }}
+        </div>
+        <input type="hidden" name="is_free" id="isFreeInput" value="true">
+      </div>
+
+      <!-- Tags -->
+      <div class="form-section" data-aos="fade-up" data-aos-delay="120">
+        <div class="form-section-title"><i class="fas fa-tags" style="color:var(--accent3)"></i> Tags</div>
+        <div class="mb-2">
+          <input type="text" class="glass-input" id="tagInputField"
+                 placeholder="Type a tag and press Enter…">
+        </div>
+        <div class="tag-input-wrap" id="tagDisplay"></div>
+        <input type="hidden" name="tags" id="tagsHidden">
+        <p style="font-size:.75rem;color:var(--muted);margin-top:.5rem">Tags help students find your course</p>
+      </div>
+    </div>
+
+    <!-- Sidebar Preview -->
+    <div class="col-xl-4">
+      <div class="glass p-4 sticky-top" style="top:84px;border-radius:var(--radius-lg)" data-aos="fade-left">
+        <h3 style="font-weight:700;margin-bottom:1rem">📱 Preview</h3>
+        <div style="border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1rem">
+          <div id="previewThumbBox" style="height:140px;background:linear-gradient(135deg,rgba(108,99,255,.3),rgba(0,212,255,.2));display:flex;align-items:center;justify-content:center;font-size:3rem">📖</div>
+          <div style="padding:1rem">
+            <div id="previewTitle" style="font-weight:700;font-size:.95rem;margin-bottom:.4rem;color:var(--text)">Course Title</div>
+            <div id="previewDiff" class="badge-difficulty badge-beginner mb-2">Beginner</div>
+            <div id="previewDesc" style="font-size:.78rem;color:var(--muted)">Your course description will appear here…</div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between mb-2" style="font-size:.82rem;color:var(--muted)">
+          <span><i class="fas fa-clock me-1"></i><span id="previewDuration">0</span>h</span>
+          <span id="previewPrice" style="font-weight:700;color:var(--green)">Free</span>
+        </div>
+        <div class="divider"></div>
+        <div class="d-flex flex-column gap-2">
+          <button type="submit" name="status" value="draft" class="btn-outline-glow btn w-100">
+            <i class="fas fa-save me-2"></i>Save as Draft
+          </button>
+          <button type="submit" class="btn-primary-glow btn w-100">
+            <i class="fas fa-save me-2"></i>Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Live preview
+  const title = document.querySelector('[name="title"]');
+  const desc  = document.querySelector('[name="description"]');
+  const slug  = document.querySelector('[name="slug"]');
+  const diff  = document.querySelector('[name="difficulty"]');
+  const dur   = document.querySelector('[name="duration_hrs"]');
+
+  title?.addEventListener('input', () => {
+    document.getElementById('previewTitle').textContent = title.value || 'Course Title';
+    // Auto-slug
+    const s = title.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    slug.value = s;
+    document.getElementById('slugPreview').textContent = s || 'your-slug';
+  });
+  slug?.addEventListener('input', () => {
+    document.getElementById('slugPreview').textContent = slug.value || 'your-slug';
+  });
+  desc?.addEventListener('input', () => {
+    document.getElementById('previewDesc').textContent = desc.value.slice(0, 100) || 'Your course description…';
+  });
+  diff?.addEventListener('change', () => {
+    const el = document.getElementById('previewDiff');
+    el.className = `badge-difficulty badge-${diff.value} mb-2`;
+    el.textContent = diff.options[diff.selectedIndex].text;
+  });
+  dur?.addEventListener('input', () => {
+    document.getElementById('previewDuration').textContent = dur.value || '0';
+  });
+
+  // Thumbnail preview
+  function previewThumb(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('thumbPreview');
+      img.src = e.target.result; img.style.display = 'block';
+      const box = document.getElementById('previewThumbBox');
+      box.style.backgroundImage = `url(${e.target.result})`;
+      box.style.backgroundSize = 'cover';
+      box.style.backgroundPosition = 'center';
+      box.textContent = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Drag-drop
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    const input = document.getElementById('thumbnailInput');
+    const dt = new DataTransfer();
+    dt.items.add(e.dataTransfer.files[0]);
+    input.files = dt.files;
+    previewThumb(input);
+  });
+
+  // Pricing
+  function setPricing(type, btn) {
+    document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('isFreeInput').value = type === 'free' ? 'true' : 'false';
+    document.getElementById('priceField').style.display = type === 'paid' ? 'block' : 'none';
+    document.getElementById('previewPrice').textContent = type === 'free' ? 'Free' : '₹' + (document.querySelector('[name="price"]')?.value || '0');
+    document.getElementById('previewPrice').style.color = type === 'free' ? 'var(--green)' : 'var(--accent)';
+  }
+
+  // Tags
+  const tags = new Set();
+  const tagInput  = document.getElementById('tagInputField');
+  const tagDisplay= document.getElementById('tagDisplay');
+  const tagsHidden= document.getElementById('tagsHidden');
+
+  function renderTags() {
+    tagDisplay.innerHTML = [...tags].map(t => `
+      <span class="tag-chip">${t}
+        <button type="button" onclick="removeTag('${t}')"><i class="fas fa-times"></i></button>
+      </span>`).join('');
+    tagsHidden.value = [...tags].join(',');
+  }
+  function removeTag(t) { tags.delete(t); renderTags(); }
+  tagInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = tagInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      if (val && tags.size < 10) { tags.add(val); tagInput.value = ''; renderTags(); }
+    }
+  });
+
+  // Pre-fill existing tags
+  const existingTags = '{{ form.tags.value|default:"" }}'.split(',');
+  existingTags.forEach(t => { if (t.trim()) tags.add(t.trim()); });
+  renderTags();
+</script>
+{% endblock %}

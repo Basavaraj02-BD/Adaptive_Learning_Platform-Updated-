@@ -679,6 +679,33 @@ def create_course(request):
         form = CourseForm()
     return render(request, 'learning/create_course.html', {'form': form})
 
+@login_required
+def edit_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id, instructor=request.user)
+    if request.method == 'POST':
+        form = CourseForm(request.POST, request.FILES, instance=course)
+        if form.is_valid():
+            c = form.save(commit=False)
+            c.is_free = request.POST.get('is_free', 'false') == 'true'
+            if c.is_free:
+                c.price = 0
+            c.tags = request.POST.get('tags', '')
+            c.save()
+            messages.success(request, f'Course "{c.title}" updated successfully!')
+            return redirect('instructor_dashboard')
+    else:
+        form = CourseForm(instance=course)
+    return render(request, 'learning/edit_course.html', {'form': form, 'course': course})
+
+@login_required
+@require_POST
+def delete_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id, instructor=request.user)
+    title = course.title
+    course.delete()
+    messages.success(request, f'Course "{title}" has been deleted.')
+    return redirect('instructor_dashboard')
+
 
 # ══════════════════════════════════════════
 #  PASSWORD CHANGE
