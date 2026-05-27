@@ -10,22 +10,26 @@ A full-featured Django project with AI-powered adaptive learning, auto evaluatio
 ---
 
 
-## 📋 All 12 Database Tables Implemented
+## 📋 All 16 Database Tables Implemented
 
 | # | Table | Description |
 |---|-------|-------------|
 | 1 | **UserProfile** | Extends Django User — role, skill level, XP points, learning style |
-| 2 | **Course** | Courses with difficulty, pricing, tags, instructor |
+| 2 | **Course** | Courses with difficulty, pricing, tags, instructor, and thumbnails |
 | 3 | **Module** | Course modules with ordering and lock system |
 | 4 | **LearningMaterial** | Videos, PDFs, articles, quizzes per module |
 | 5 | **Enrollment** | Student–course enrollment with progress % |
 | 6 | **StudentProgress** | Per-material completion tracking |
 | 7 | **Exam** | Timed exams with shuffle, attempts, pass marks |
 | 8 | **Question** | MCQ, True/False, Fill-in-blank, Short Answer |
-| 9 | **ExamResult** | Score, percentage, status, AI feedback |
-| 10 | **StudentAnswer** | Per-question answers with AI grading |
+| 9 | **ExamResult** | Score, percentage, status, feedback |
+| 10 | **StudentAnswer** | Per-question answers with given response |
 | 11 | **Payment** | Course payments with Stripe/UPI/card support |
 | 12 | **Notification** | System, enrollment, exam, payment notifications |
+| 13 | **CourseReview** | Course reviews and ratings from students |
+| 14 | **DiscussionThread** | Forum threads for course discussions |
+| 15 | **DiscussionReply** | Thread replies in the discussion forum |
+| 16 | **ChatMessage** | History of chatbot interactions with AdaptBot |
 
 ---
 
@@ -46,14 +50,13 @@ A full-featured Django project with AI-powered adaptive learning, auto evaluatio
 
 ### 1. Create Virtual Environment
 ```bash
-cd adaptive_learning
-python -m venv venv
+python -m venv .venv
 
-# Windows
-venv\Scripts\activate
+# Windows (Command Prompt / PowerShell)
+.venv\Scripts\activate
 
 # Mac/Linux
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### 2. Install Dependencies
@@ -79,44 +82,19 @@ python manage.py createsuperuser
 ```
 
 ### 6. (Optional) Load Sample Data
+You can easily load realistic demo datasets using our management seed commands:
 ```bash
-python manage.py shell
-```
-Then paste:
-```python
-from django.contrib.auth.models import User
-from learning.models import *
+# Seed initial teacher and core courses
+python manage.py seed_courses
 
-# Create a sample published course
-u = User.objects.first()
-c = Course.objects.create(
-    title="Python for Beginners",
-    slug="python-beginners",
-    description="Learn Python from scratch with hands-on projects.",
-    instructor=u,
-    difficulty="beginner",
-    status="published",
-    is_free=True,
-    duration_hrs=10,
-    tags="python programming beginner",
-)
-m = Module.objects.create(course=c, title="Introduction to Python", order=1)
-LearningMaterial.objects.create(
-    module=m, title="What is Python?", material_type="article",
-    content="<p>Python is a high-level programming language...</p>", order=1
-)
-exam = Exam.objects.create(
-    course=c, module=m, title="Python Basics Quiz",
-    exam_type="module", duration_mins=10, total_marks=10, pass_marks=6
-)
-q = Question.objects.create(
-    exam=exam, question_text="What symbol is used for comments in Python?",
-    question_type="mcq", marks=2, correct_answer="#",
-    explanation="The # symbol is used for single-line comments."
-)
-q.set_options(["//", "#", "/*", "--"])
-q.save()
-print("Sample data created!")
+# Seed full student demo dataset (users, notifications, enrollments)
+python manage.py seed_data
+
+# Seed at least 10 high-quality questions for each exam
+python manage.py seed_exam_questions
+
+# Humanize course descriptions and text in the database
+python manage.py humanize_existing_courses
 ```
 
 ### 7. Start Server
@@ -245,21 +223,27 @@ adaptive_learning/
 │   ├── urls.py
 │   └── wsgi.py
 ├── learning/                # Main app
-│   ├── models.py            # All 12 tables
-│   ├── views.py             # All views
-│   ├── urls.py              # All routes
-│   ├── forms.py             # Auth + content forms
-│   ├── admin.py             # Django admin
-│   ├── signals.py           # Auto profile creation
-│   └── context_processors.py
+│   ├── models.py            # All 16 tables
+│   ├── views.py             # Main views and business logic
+│   ├── urls.py              # Routes
+│   ├── forms.py             # Auth & course management forms
+│   ├── admin.py             # Django admin settings
+│   ├── signals.py           # Auto-profile creation
+│   ├── context_processors.py
+│   └── management/
+│       └── commands/        # Custom seed & migration scripts
+│           ├── seed_courses.py
+│           ├── seed_data.py
+│           ├── seed_exam_questions.py
+│           └── humanize_existing_courses.py
 ├── templates/
 │   ├── base.html            # Master layout
-│   ├── registration/
+│   ├── registration/        # Login/Register templates
 │   │   ├── user_login.html
 │   │   ├── user_register.html
 │   │   ├── admin_login.html
 │   │   └── admin_register.html
-│   └── learning/
+│   └── learning/            # App-specific UI templates
 │       ├── home.html
 │       ├── dashboard.html
 │       ├── admin_dashboard.html
@@ -276,8 +260,11 @@ adaptive_learning/
 │       ├── payment.html
 │       ├── admin_users.html
 │       └── admin_courses.html
-├── static/
+├── static/                  # Static styles and assets
+├── media/                   # Media files (course thumbnails)
 ├── manage.py
 ├── requirements.txt
+├── setup.bat                # Setup script for Windows
+├── setup.sh                 # Setup script for Linux
 └── .env.example
 ```
