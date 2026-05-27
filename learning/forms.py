@@ -6,9 +6,9 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import UserProfile, Course, Module, LearningMaterial, Exam, Question
 
 
-# ══════════════════════════════════════════
+
 #  AUTH FORMS
-# ══════════════════════════════════════════
+
 
 class UserRegistrationForm(UserCreationForm):
     first_name = forms.CharField(
@@ -153,9 +153,9 @@ class UserProfileForm(forms.ModelForm):
         }
 
 
-# ══════════════════════════════════════════
+
 #  COURSE / CONTENT FORMS
-# ══════════════════════════════════════════
+
 
 class CourseForm(forms.ModelForm):
     class Meta:

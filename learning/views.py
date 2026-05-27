@@ -826,9 +826,9 @@ def manage_exam(request, exam_id):
     return render(request, 'learning/manage_exam.html', {'exam': exam, 'questions': questions})
 
 
-# ══════════════════════════════════════════
+
 #  INSTRUCTOR DASHBOARD
-# ══════════════════════════════════════════
+
 @login_required
 def instructor_dashboard(request):
     if not is_instructor(request.user):
@@ -880,9 +880,9 @@ def instructor_dashboard(request):
     })
 
 
-# ══════════════════════════════════════════
+
 #  COURSE REVIEWS
-# ══════════════════════════════════════════
+
 from .models import CourseReview, DiscussionThread, DiscussionReply
 
 @login_required
@@ -934,9 +934,9 @@ def submit_review(request, course_id):
     return redirect('course_reviews', slug=course.slug)
 
 
-# ══════════════════════════════════════════
+
 #  DISCUSSION FORUM
-# ══════════════════════════════════════════
+
 @login_required
 def discussion(request, slug):
     course = get_object_or_404(Course, slug=slug)
@@ -978,13 +978,12 @@ def post_reply(request, thread_id):
     return redirect('discussion', slug=thread.course.slug)
 
 
-# ══════════════════════════════════════════
 
 
 
-# ══════════════════════════════════════════
+
 #  PROGRESS REPORT (JSON export)
-# ══════════════════════════════════════════
+
 @login_required
 def progress_report(request):
     from django.http import JsonResponse as JR
