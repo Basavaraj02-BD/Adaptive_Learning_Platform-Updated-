@@ -206,27 +206,33 @@ Visit: **http://127.0.0.1:8000/**
 
 ## 📚 Courses
 
-<img width="1920" height="920" alt="image" src="https://github.com/user-attachments/assets/88d3d07a-852a-447f-9f13-271b80c766c5" />
+<img width="1920" height="917" alt="image" src="https://github.com/user-attachments/assets/87cddfd9-cc9a-4745-bf25-a4c322ba7228" />
+
 
 ---
 
 ## 🎓 Student Dashboard
 
-<img width="1920" height="917" alt="image" src="https://github.com/user-attachments/assets/c44cb2e9-80c5-4c96-9ad1-76f6e361b993" />
+<img width="1920" height="917" alt="image" src="https://github.com/user-attachments/assets/c8cab19c-47bf-4d23-a7b3-10a0649d5e45" />
+
 
 
 ---
 
 ## 📝 Exam System
 
-<img width="1920" height="917" alt="image" src="https://github.com/user-attachments/assets/08540cf7-0fa8-432d-ae7e-18667e5e1f55" />
+<img width="1920" height="922" alt="image" src="https://github.com/user-attachments/assets/e3306e88-2256-430a-b742-0f4f1ead002b" />
+
 
 
 ---
 
 ## 🛡️ Admin Dashboard
 
-<img width="1902" height="916" alt="image" src="https://github.com/user-attachments/assets/e78bffbf-a859-43e1-8cb5-f0a77d0910c8" />
+<img width="1920" height="915" alt="image" src="https://github.com/user-attachments/assets/a30860f9-a6e3-4fe4-9350-cef0a96a917e" />
+<img width="1920" height="917" alt="image" src="https://github.com/user-attachments/assets/b924d62b-83bd-44d8-bc89-e49b8f7b8773" />
+
+
 
 ---
 
