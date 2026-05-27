@@ -1,4 +1,3 @@
-# pyrefly: ignore [missing-import]
 from django.core.management.base import BaseCommand
 from learning.models import Exam, Question
 import json
@@ -7,8 +6,8 @@ class Command(BaseCommand):
     help = "Seed the database to ensure all exams have at least 10 questions."
 
     def handle(self, *args, **kwargs):
-        # We will map exam title keywords to a list of questions.
-        # Format of question: (question_text, question_type, options_list, correct_answer, explanation, difficulty, marks)
+        # Map keywords to specific question pools
+        # Format: (question_text, question_type, options_list, correct_answer, explanation, difficulty, marks)
         
         python_questions = [
             ("Which of the following is a mutable data type in Python?", "mcq", ["List", "Tuple", "String", "Integer"], "List", "Lists can be modified in place, unlike tuples, strings, or ints.", "easy", 2),
@@ -151,7 +150,7 @@ class Command(BaseCommand):
             ("What is the size of 'char' data type in Java?", "mcq", ["1 byte", "2 bytes", "4 bytes", "Depends on OS"], "2 bytes", "Java uses UTF-16 representation, making char 2 bytes.", "medium", 2),
         ]
 
-        # Let's map keywords in exam names to these question pools
+        # Map keywords in exam names to question pools
         mapping = {
             "python": python_questions,
             "django": django_questions,
@@ -166,7 +165,7 @@ class Command(BaseCommand):
             "sql": sql_questions,
             "c programming": c_questions,
             "java": java_questions,
-            "web development": js_questions + html_questions,  # combine for general web development
+            "web development": js_questions + html_questions,  # Combine JS and HTML for general web development
         }
 
         self.stdout.write(self.style.MIGRATE_HEADING("Starting seeding of exam questions..."))
@@ -184,7 +183,7 @@ class Command(BaseCommand):
                     break
             
             if not pool:
-                # Fallback to general python/web if no key matched
+                # Fall back to Python questions if no direct match is found
                 pool = python_questions
                 self.stdout.write(f"  Warning: No direct pool matched '{exam.title}'. Using Python questions.")
 
@@ -196,12 +195,12 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"  [OK] Exam already has {current_count} questions."))
                 continue
 
-            # We need to add questions to reach at least 10
+            # Add questions from pool until we hit 10
             needed = 10 - current_count
             added = 0
             
-            # We iterate through the pool and insert if they don't already exist in this exam
-            # Check by question text prefix to avoid duplicates
+            # Loop through the pool and insert non-duplicate questions
+            # Check text to avoid double insertion
             existing_texts = [q.question_text.lower().strip() for q in exam.questions.all()]
             
             for q_data in pool:
@@ -232,10 +231,10 @@ class Command(BaseCommand):
                 
             self.stdout.write(self.style.SUCCESS(f"  [OK] Added {added} questions. Total: {exam.questions.count()}"))
             
-            # Also update the exam's total_marks to be sum of marks of all questions
+            # Update total marks of the exam
             total_marks = sum(q.marks for q in exam.questions.all())
             exam.total_marks = total_marks
-            # Ensure pass marks is adjusted if needed (e.g. 40% of total)
+            # Recalculate pass marks (40% of total)
             exam.pass_marks = int(total_marks * 0.4)
             exam.save()
             self.stdout.write(f"  Updated total_marks to {total_marks}, pass_marks to {exam.pass_marks}.")

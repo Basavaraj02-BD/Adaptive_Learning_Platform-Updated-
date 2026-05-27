@@ -33,7 +33,7 @@ class Command(BaseCommand):
                 course.save()
                 self.stdout.write(self.style.SUCCESS(f"  [OK] Humanized course description for '{course.title}'"))
             except Course.DoesNotExist:
-                # If course doesn't exist under this slug, try title containment
+                # Fall back to matching by title if slug lookup fails
                 try:
                     title_search = slug.replace("-", " ")
                     course = Course.objects.get(title__icontains=title_search)

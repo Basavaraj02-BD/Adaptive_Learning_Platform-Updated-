@@ -363,7 +363,7 @@ def take_exam(request, exam_id):
         result.score = score
         result.percentage = round(pct, 2)
         result.status = status
-        # AI feedback
+        # Generate score feedback
         result.ai_feedback = generate_ai_feedback(request.user, exam, score, pct)
         result.save()
         send_notification(request.user, 'Exam Submitted ✅',
@@ -385,7 +385,7 @@ def exam_result(request, result_id):
 
 
 def generate_ai_feedback(user, exam, score, pct):
-    """Generate adaptive AI feedback (fallback if API key not set)."""
+    """Generate course exam feedback based on student score percentages."""
     name = user.first_name or user.username
     if pct >= 90:
         return (
@@ -487,7 +487,7 @@ def profile(request):
 
 
 # ══════════════════════════════════════════
-#  AI CHATBOT
+#  MENTOR CHATBOT
 # ══════════════════════════════════════════
 @login_required
 def chatbot_page(request):
@@ -530,7 +530,7 @@ def chatbot_api(request):
             )
             reply = response.content[0].text
         else:
-            # Fallback demo replies
+            # Use static replies if API key is not configured
             replies = [
                 f"Hey there, {request.user.first_name or request.user.username}! I'm AdaptBot, your study sidekick. What are we learning today? Drop any questions or code snippets here!",
                 "Oh, that's a super interesting topic! I always recommend breaking it down: review the core concepts for 15 minutes, write a simple example, and test yourself. What part of it feels the trickiest right now?",
@@ -548,9 +548,9 @@ def chatbot_api(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-# ══════════════════════════════════════════
+
 #  ADMIN — MANAGE USERS
-# ══════════════════════════════════════════
+
 @login_required
 def admin_users(request):
     if not is_admin(request.user):
@@ -579,12 +579,10 @@ def admin_toggle_user(request, user_id):
     return redirect('admin_users')
 
 
-# ══════════════════════════════════════════
+
 #  LEADERBOARD
-# ══════════════════════════════════════════
-# ══════════════════════════════════════════
 #  ANALYTICS
-# ══════════════════════════════════════════
+
 @login_required
 def analytics(request):
     user = request.user
@@ -662,9 +660,9 @@ def analytics(request):
     return render(request, 'learning/analytics.html', context)
 
 
-# ══════════════════════════════════════════
+
 #  CERTIFICATE
-# ══════════════════════════════════════════
+
 @login_required
 def certificate(request, enrollment_id):
     enrollment = get_object_or_404(Enrollment, id=enrollment_id, student=request.user)
@@ -687,9 +685,9 @@ def certificate(request, enrollment_id):
     })
 
 
-# ══════════════════════════════════════════
+
 #  CREATE COURSE (Instructor)
-# ══════════════════════════════════════════
+
 @login_required
 def create_course(request):
     if not is_instructor(request.user):
@@ -743,9 +741,9 @@ def delete_course(request, course_id):
     return redirect('instructor_dashboard')
 
 
-# ══════════════════════════════════════════
+
 #  PASSWORD CHANGE
-# ══════════════════════════════════════════
+
 @login_required
 def change_password(request):
     from django.contrib.auth import update_session_auth_hash
@@ -767,9 +765,9 @@ def change_password(request):
     return render(request, 'learning/change_password.html', {'form': form})
 
 
-# ══════════════════════════════════════════
+
 #  SEARCH
-# ══════════════════════════════════════════
+
 def search(request):
     q = request.GET.get('q', '').strip()
     courses = []
@@ -784,9 +782,9 @@ def search(request):
     return render(request, 'learning/search_results.html', {'courses': courses, 'query': q})
 
 
-# ══════════════════════════════════════════
+
 #  ADD EXAM QUESTION (Instructor)
-# ══════════════════════════════════════════
+
 @login_required
 def add_question(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
@@ -815,9 +813,9 @@ def add_question(request, exam_id):
     return render(request, 'learning/add_question.html', {'form': form, 'exam': exam})
 
 
-# ══════════════════════════════════════════
+
 #  MANAGE EXAM (Instructor)
-# ══════════════════════════════════════════
+
 @login_required
 def manage_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
