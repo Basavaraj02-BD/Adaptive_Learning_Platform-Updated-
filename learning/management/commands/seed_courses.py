@@ -14,19 +14,25 @@ class Command(BaseCommand):
         profile.role = "instructor"
         profile.save()
 
-        courses = [
-            "Python Basics", "Django Development", "HTML Fundamentals",
-            "CSS Masterclass", "JavaScript Essentials", "Data Structures",
-            "Machine Learning Intro", "SQL Basics", "C Programming",
-            "Java Fundamentals"
-        ]
+        course_descriptions = {
+            "Python Basics": "Hey there! Ready to write your very first line of code? Python is the perfect place to start. We will walk you through the absolute basics—no confusing jargon, just practical coding to kickstart your journey. Let's build something cool together!",
+            "Django Development": "Ever wanted to build a real, working web app from scratch? Django is the powerhouse used by giants like Instagram. In this course, we'll guide you step-by-step to design models, create views, and launch your own backend. Ready to build?",
+            "HTML Fundamentals": "Welcome to the building blocks of the web! Every website you visit starts with HTML. We'll show you how to structure content, write clean markup, and organize web pages like a pro. No prior experience needed!",
+            "CSS Masterclass": "Bring your websites to life! CSS is where logic meets design. We'll master layouts, colors, Flexbox, and CSS Grid to help you design responsive, gorgeous web pages that wow visitors. Let's make it look premium!",
+            "JavaScript Essentials": "Let's make things interactive! JavaScript is the brain of the browser. We'll learn variables, loops, objects, and standard programming techniques that let you respond to clicks, create animations, and build dynamic UI.",
+            "Data Structures": "Struggling to write efficient code? Data structures are the keys to optimization. We'll tackle arrays, trees, stacks, and lists with clear, real-world analogies that actually make sense (no dry math talk!).",
+            "Machine Learning Intro": "Curious how Netflix recommends movies or how self-driving cars 'see'? Welcome to the world of AI. We will cover the core concepts of machine learning in a simple, friendly way—perfect for curious beginners.",
+            "SQL Basics": "Data rules the world, and SQL is the language used to talk to it. Learn how to query databases, join tables, and extract valuable insights without getting lost in rows of code. Let's unlock data power!",
+            "C Programming": "Let's go under the hood! C is the language that power systems, game engines, and OS kernels. We will master memory allocation, pointers, and arrays to help you write blazing fast code and truly understand computers.",
+            "Java Fundamentals": "Write once, run anywhere! Java is the backbone of enterprise apps and Android development. We will dive into Object-Oriented Programming (OOP), collections, and robust software design in a structured, friendly way."
+        }
 
-        for title in courses:
+        for title in course_descriptions.keys():
             course, created = Course.objects.get_or_create(
                 slug=slugify(title),
                 defaults={
                     "title": title,
-                    "description": f"Learn {title} with hands-on examples.",
+                    "description": course_descriptions[title],
                     "instructor": teacher,
                     "difficulty": "beginner",
                     "status": "published",

@@ -386,14 +386,31 @@ def exam_result(request, result_id):
 
 def generate_ai_feedback(user, exam, score, pct):
     """Generate adaptive AI feedback (fallback if API key not set)."""
+    name = user.first_name or user.username
     if pct >= 90:
-        return f"Outstanding performance, {user.first_name}! You scored {pct:.1f}%. You've mastered this topic — consider tackling the advanced exam!"
+        return (
+            f"Wow, absolute rockstar move, {name}! 🚀 Scoring {pct:.1f}% on the {exam.title} is incredible. "
+            f"You've clearly got a solid handle on this material. Ready to push your boundaries? "
+            f"I'd highly recommend checking out some advanced challenges or diving straight into the next module!"
+        )
     elif pct >= 70:
-        return f"Great work, {user.first_name}! You scored {pct:.1f}%. Review the questions you missed and you'll be fully prepared."
+        return (
+            f"High five, {name}! 🌟 You did great and scored {pct:.1f}%. You're so close to perfection. "
+            f"Take a quick peek at the couple of questions that tripped you up, and you'll have this fully mastered. "
+            f"Keep up this amazing momentum!"
+        )
     elif pct >= 50:
-        return f"Good effort, {user.first_name}. You scored {pct:.1f}%. Focus on the areas where you lost marks and try again."
+        return (
+            f"Good job on completing the exam, {name}! You got {pct:.1f}%. You've got the core basics down, "
+            f"but there are a few concepts that could use a quick review. Try revisiting the module's summary articles "
+            f"and give it another shot—you've got this!"
+        )
     else:
-        return f"Don't give up, {user.first_name}! You scored {pct:.1f}%. We recommend revisiting the learning materials for this module."
+        return (
+            f"Don't sweat it, {name}! Learning is all about trial and error, and this is just a stepping stone. "
+            f"You got {pct:.1f}%. I'd suggest taking a short break, reviewing the module materials, and asking AdaptBot "
+            f"for any clarifications. We believe in you—try again when you're ready! 💪"
+        )
 
 
 # ══════════════════════════════════════════
@@ -504,9 +521,10 @@ def chatbot_api(request):
                 model='claude-3-5-sonnet-20240620',
                 max_tokens=1024,
                 system=(
-                    "You are AdaptBot, an intelligent learning assistant for the AdaptLearn platform. "
-                    "Help students with course content, exam tips, study strategies, and learning guidance. "
-                    "Be encouraging, clear, and concise. Use markdown formatting where helpful."
+                    "You are AdaptBot, a warm, friendly, and highly empathetic learning mentor for the AdaptLearn platform. "
+                    "Speak conversationally, encourage the student, and ask light check-in questions to make learning interactive. "
+                    "Break down technical concepts using easy-to-understand analogies. Avoid sounding like a dry text generator. "
+                    "Use markdown formatting nicely."
                 ),
                 messages=messages_payload,
             )
@@ -514,10 +532,11 @@ def chatbot_api(request):
         else:
             # Fallback demo replies
             replies = [
-                "I'm AdaptBot! I'm here to help with your studies. Ask me anything about your courses or exams!",
-                "Great question! Focus on reviewing the key concepts first, then practice with the exam questions.",
-                "I recommend starting with the beginner modules and progressing gradually. Consistency is key!",
-                "For best results, study for 25 minutes then take a 5-minute break (Pomodoro technique)!",
+                f"Hey there, {request.user.first_name or request.user.username}! I'm AdaptBot, your study sidekick. What are we learning today? Drop any questions or code snippets here!",
+                "Oh, that's a super interesting topic! I always recommend breaking it down: review the core concepts for 15 minutes, write a simple example, and test yourself. What part of it feels the trickiest right now?",
+                "Progress is all about small, consistent steps. Don't worry if it doesn't click immediately—try starting with the beginner modules and build up. How can I help clarify things for you?",
+                "If your brain is feeling a bit fried, try the Pomodoro technique: study intensely for 25 minutes, then take a guilt-free 5-minute break to stretch. Want to set a goal for the next 25 minutes?",
+                "I'm right here with you! If you're stuck on a particular exam or concept, tell me what it is and we can dissect it together. You've got this!"
             ]
             reply = random.choice(replies)
 

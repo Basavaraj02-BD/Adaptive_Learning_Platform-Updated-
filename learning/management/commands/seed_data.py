@@ -89,7 +89,7 @@ class Command(BaseCommand):
                 'difficulty': 'beginner',
                 'price': 0,
                 'is_free': True,
-                'description': 'Master Python from scratch — variables, loops, functions, OOP, and more.',
+                'description': "Hey there! Ready to write your very first line of code? Python is the perfect starting point. We'll walk you through variables, loops, functions, and object-oriented programming step-by-step—with no confusing jargon, just hands-on coding fun!",
                 'duration_hrs': 12,
                 'tags': 'python programming beginners coding',
                 'modules': [
@@ -127,7 +127,7 @@ class Command(BaseCommand):
                 'difficulty': 'intermediate',
                 'price': 999,
                 'is_free': False,
-                'description': 'Learn supervised, unsupervised learning, and neural network basics with scikit-learn.',
+                'description': "Curious about the magic behind Netflix recommendations or self-driving cars? Welcome! We'll explore supervised learning, unsupervised clustering, and basic neural networks in a clear, friendly way using scikit-learn.",
                 'duration_hrs': 20,
                 'tags': 'machine learning AI python data science scikit-learn',
                 'modules': [
@@ -156,7 +156,7 @@ class Command(BaseCommand):
                 'difficulty': 'intermediate',
                 'price': 1499,
                 'is_free': False,
-                'description': 'Build full-stack web applications using Python and Django framework.',
+                'description': "Let's build a real, working web app from scratch! We'll teach you how to use Django's powerful backend system to design models, create user-friendly views, and launch your own dynamic website.",
                 'duration_hrs': 25,
                 'tags': 'django web development python backend',
                 'modules': [
@@ -185,7 +185,7 @@ class Command(BaseCommand):
                 'difficulty': 'advanced',
                 'price': 1999,
                 'is_free': False,
-                'description': 'Master DSA concepts: trees, graphs, dynamic programming, and algorithm design.',
+                'description': "Ready to level up your engineering skills? Data structures and algorithms are the keys to writing fast, clean code. We'll tackle arrays, trees, graphs, and dynamic programming with clear analogies that actually click.",
                 'duration_hrs': 30,
                 'tags': 'DSA algorithms competitive programming interview',
                 'modules': [
