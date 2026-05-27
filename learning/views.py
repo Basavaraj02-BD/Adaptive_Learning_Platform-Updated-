@@ -313,7 +313,8 @@ def mark_material_complete(request, material_id):
     )
     progress.is_completed = True
     progress.save()
-    return JsonResponse({'status': 'ok'})
+    messages.success(request, 'Material marked as complete.')
+    return redirect('module_detail', module_id=material.module.id)
 
 
 # ══════════════════════════════════════════
@@ -1014,3 +1015,39 @@ def leaderboard(request):
         total_exams=Count('exam_results'),
     ).filter(total_exams__gt=0).order_by('-avg_score')[:20]
     return render(request, 'learning/leaderboard.html', {'top_students': top_students})
+
+
+def password_reset_custom(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        if not username or not email or not new_password or not confirm_password:
+            messages.error(request, 'All fields are required.')
+            return render(request, 'registration/password_reset_form.html')
+
+        try:
+            user = User.objects.get(username=username, email=email)
+        except User.DoesNotExist:
+            messages.error(request, 'No user found with the provided username and email.')
+            return render(request, 'registration/password_reset_form.html')
+
+        if new_password != confirm_password:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'registration/password_reset_form.html')
+
+        if len(new_password) < 6:
+            messages.error(request, 'Password must be at least 6 characters long.')
+            return render(request, 'registration/password_reset_form.html')
+
+        user.set_password(new_password)
+        user.save()
+        messages.success(request, 'Password reset successfully! You can now sign in with your new password.')
+        return redirect('user_login')
+
+    return render(request, 'registration/password_reset_form.html')

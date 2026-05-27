@@ -530,7 +530,7 @@
       </a>
       {% endif %}
 
-      {% if request.user.is_superuser or request.user.is_staff or request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
+      {% if request.user.profile.role == 'instructor' %}
       <div class="sidebar-section">Instructor Panel</div>
       <a href="{% url 'instructor_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'instructor_dashboard' %}active{% endif %}">
         <i class="fas fa-chalkboard-teacher"></i> Dashboard

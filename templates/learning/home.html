@@ -195,8 +195,12 @@
         {% for course in courses %}
         <div class="col-md-6 col-xl-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
           <div class="c-card h-100">
-            <div style="height:150px;background:linear-gradient(135deg,{% cycle 'rgba(108,99,255,.4),rgba(0,212,255,.3)' 'rgba(255,101,132,.4),rgba(255,215,0,.3)' 'rgba(0,212,255,.4),rgba(0,230,118,.3)' %});display:flex;align-items:center;justify-content:center;font-size:3rem">
-              {% cycle '📊' '🧠' '💻' '🚀' '🎯' '📐' %}
+            <div style="height:150px;background:linear-gradient(135deg,{% cycle 'rgba(108,99,255,.4),rgba(0,212,255,.3)' 'rgba(255,101,132,.4),rgba(255,215,0,.3)' 'rgba(0,212,255,.4),rgba(0,230,118,.3)' %});display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;overflow:hidden">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+              {% else %}
+                {% cycle '📊' '🧠' '💻' '🚀' '🎯' '📐' %}
+              {% endif %}
             </div>
             <div style="padding:1.2rem">
               <div class="d-flex align-items-center gap-2 mb-2">

@@ -104,4 +104,5 @@ AUTH_USER_MODEL = 'auth.User'
 ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY', 'ADAPTIVE_ADMIN_2024')
 
 # Email Backend for Password Reset (outputs to console during development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'emails')
