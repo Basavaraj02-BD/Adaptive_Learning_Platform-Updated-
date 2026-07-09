@@ -11,7 +11,7 @@
       <p style="color:var(--muted)">Discover your next learning adventure</p>
     </div>
 
-    <!-- ✅ Add Course button — visible to Admin & Instructor -->
+    <!--  Add Course button — visible to Admin & Instructor -->
     {% if request.user.is_superuser or request.user.profile.role == 'instructor' or request.user.profile.role == 'admin' %}
     <a href="{% url 'create_course' %}" class="btn-primary-glow btn">
       <i class="fas fa-plus me-2"></i>Create New Course
@@ -68,7 +68,7 @@
           {% endif %}
         </div>
 
-        <!-- ✅ Edit button for Admin/Instructor on card -->
+        <!-- Edit button for Admin/Instructor on card -->
         {% if request.user.is_superuser or request.user == course.instructor %}
         <div style="position:absolute;top:.6rem;left:.6rem">
           <a href="/admin/learning/course/{{ course.id }}/change/"

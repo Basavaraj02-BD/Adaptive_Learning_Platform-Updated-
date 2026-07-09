@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function() {
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Sign-In Simulator — AdaptLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090e;
+      --card: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --google-blue: #4285f4;
+      --google-red: #ea4335;
+      --google-yellow: #fbbc05;
+      --google-green: #34a853;
+      --accent: #6c63ff;
+      --accent2: #00d4ff;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 60% at 20% 20%, rgba(66, 133, 244, 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(108, 99, 255, 0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .simulator-card {
+      max-width: 550px;
+      width: 100%;
+      background: rgba(15, 20, 32, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 10;
+    }
+    .google-logo {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+    .google-logo span:nth-child(1) { color: var(--google-blue); }
+    .google-logo span:nth-child(2) { color: var(--google-red); }
+    .google-logo span:nth-child(3) { color: var(--google-yellow); }
+    .google-logo span:nth-child(4) { color: var(--google-blue); }
+    .google-logo span:nth-child(5) { color: var(--google-green); }
+    .google-logo span:nth-child(6) { color: var(--google-red); }
+
+    .simulator-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 0.3rem;
+      background: linear-gradient(135deg, #fff, var(--muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .simulator-subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .config-alert {
+      background: rgba(251, 188, 5, 0.06);
+      border: 1px solid rgba(251, 188, 5, 0.2);
+      border-radius: 14px;
+      padding: 1rem;
+      font-size: 0.82rem;
+      color: #ffd043;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+    .quick-user-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.2s ease;
+    }
+    .quick-user-card:hover {
+      border-color: rgba(66, 133, 244, 0.5);
+      background: rgba(66, 133, 244, 0.08);
+      transform: translateY(-2px);
+    }
+    .quick-user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: var(--google-blue);
+      border: 1px solid var(--border);
+    }
+    .quick-user-info {
+      flex: 1;
+    }
+    .quick-user-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .quick-user-email {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .badge-role {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 8px;
+      text-transform: uppercase;
+    }
+    .badge-student {
+      background: rgba(108, 99, 255, 0.15);
+      color: #b4b0ff;
+      border: 1px solid rgba(108, 99, 255, 0.25);
+    }
+    .badge-instructor {
+      background: rgba(0, 212, 255, 0.12);
+      color: #8ce6ff;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    
+    .divider-text {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin: 2rem 0;
+    }
+    .divider-text::before,
+    .divider-text::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .glass-input {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1.5px solid var(--border) !important;
+      color: var(--text) !important;
+      border-radius: 12px !important;
+      padding: 0.75rem 1rem !important;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    .glass-input:focus {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: var(--google-blue) !important;
+      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2) !important;
+      outline: none;
+    }
+    .form-label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, var(--google-blue), #1a73e8);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(66, 133, 244, 0.3);
+      margin-top: 1.5rem;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(66, 133, 244, 0.45);
+    }
+    .role-banner {
+      font-size: 0.85rem;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+    }
+    .role-banner-student {
+      background: rgba(108, 99, 255, 0.08);
+      color: #b4b0ff;
+      border: 1px solid rgba(108, 99, 255, 0.15);
+    }
+    .role-banner-instructor {
+      background: rgba(0, 212, 255, 0.06);
+      color: #8ce6ff;
+      border: 1px solid rgba(0, 212, 255, 0.12);
+    }
+
+    .light-mode body {
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: rgba(15, 23, 42, 0.08);
+      --card: rgba(15, 23, 42, 0.03);
+    }
+    .light-mode body::before {
+      background:
+        radial-gradient(ellipse 60% 60% at 20% 20%, rgba(66, 133, 244, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(108, 99, 255, 0.04) 0%, transparent 50%);
+    }
+    .light-mode .simulator-card {
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .light-mode .glass-input {
+      background: rgba(15, 23, 42, 0.04) !important;
+      color: #0f172a !important;
+    }
+    .light-mode .glass-input:focus {
+      background: #fff !important;
+    }
+    .light-mode .quick-user-card {
+      background: rgba(15, 23, 42, 0.02);
+    }
+    .light-mode .quick-user-card:hover {
+      background: rgba(66, 133, 244, 0.06);
+    }
+    .light-mode .quick-user-avatar {
+      background: rgba(15, 23, 42, 0.03);
+    }
+    .light-mode .simulator-title {
+      background: linear-gradient(135deg, #0f172a, #64748b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Floating Theme Switch */
+    .theme-toggle-container {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+    }
+    .theme-toggle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.08) rotate(15deg);
+      border-color: var(--accent);
+    }
+    .theme-toggle-btn .moon-icon { display: none; }
+    .theme-toggle-btn .sun-icon { display: block; }
+    
+    .light-mode .theme-toggle-btn {
+      background: rgba(15, 23, 42, 0.04);
+      color: var(--text);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+    .light-mode .theme-toggle-btn:hover {
+      background: rgba(15, 23, 42, 0.08);
+      border-color: var(--accent);
+    }
+    .light-mode .theme-toggle-btn .moon-icon { display: block; }
+    .light-mode .theme-toggle-btn .sun-icon { display: none; }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle-container">
+    <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <i class="fas fa-sun sun-icon"></i>
+      <i class="fas fa-moon moon-icon"></i>
+    </button>
+  </div>
+  <div class="simulator-card">
+    <div class="google-logo">
+      <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+    </div>
+    <h1 class="simulator-title">Account Simulator</h1>
+    <p class="simulator-subtitle">OAuth2 Login & Registration Simulation Screen</p>
+
+    <div class="config-alert">
+      <i class="fas fa-info-circle me-2"></i>
+      <strong>Note:</strong> Google Client credentials were not detected in `.env`. The Simulator is active to allow you to test authentication instantly.
+    </div>
+
+    <!-- Active Joining Role Display -->
+    <div class="role-banner {% if role == 'instructor' %}role-banner-instructor{% else %}role-banner-student{% endif %}">
+      <i class="{% if role == 'instructor' %}fas fa-chalkboard-teacher{% else %}fas fa-user-graduate{% endif %} me-2"></i>
+      Signing up / Logging in as: <strong class="text-uppercase">{{ role }}</strong>
+    </div>
+
+    <!-- Quick select users -->
+    <div class="mb-2" style="font-size: 0.85rem; color: var(--muted); font-weight: 500;">Quick Select Pre-filled Accounts:</div>
+    {% for u in mock_users %}
+    <div class="quick-user-card" onclick="selectUser('{{ u.email }}', '{{ u.first_name }}', '{{ u.last_name }}', '{{ u.role }}')">
+      <div class="quick-user-avatar">
+        <i class="fab fa-google"></i>
+      </div>
+      <div class="quick-user-info">
+        <div class="quick-user-name">{{ u.first_name }} {{ u.last_name }}</div>
+        <div class="quick-user-email">{{ u.email }}</div>
+      </div>
+      <div>
+        <span class="badge-role {% if u.role == 'instructor' %}badge-instructor{% else %}badge-student{% endif %}">
+          {{ u.role }}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="divider-text">or custom credentials</div>
+
+    <!-- Form -->
+    <form method="POST">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" id="emailInput" class="glass-input" placeholder="e.g. jason.todd@gmail.com" required />
+      </div>
+      <div class="row g-3 mb-3">
+        <div class="col-6">
+          <label class="form-label">First Name</label>
+          <input type="text" name="first_name" id="firstNameInput" class="glass-input" placeholder="Jason" />
+        </div>
+        <div class="col-6">
+          <label class="form-label">Last Name</label>
+          <input type="text" name="last_name" id="lastNameInput" class="glass-input" placeholder="Todd" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <i class="fab fa-google me-2"></i>Continue to AdaptLearn
+      </button>
+    </form>
+  </div>
+
+  <script>
+    function selectUser(email, firstName, lastName, role) {
+      document.getElementById('emailInput').value = email;
+      document.getElementById('firstNameInput').value = firstName;
+      document.getElementById('lastNameInput').value = lastName;
+      
+      // Update styling of custom joining role banner to match quick select role
+      const banner = document.querySelector('.role-banner');
+      if (role === 'instructor') {
+        banner.className = 'role-banner role-banner-instructor';
+        banner.innerHTML = '<i class="fas fa-chalkboard-teacher me-2"></i>Signing up / Logging in as: <strong class="text-uppercase">instructor</strong>';
+      } else {
+        banner.className = 'role-banner role-banner-student';
+        banner.innerHTML = '<i class="fas fa-user-graduate me-2"></i>Signing up / Logging in as: <strong class="text-uppercase">student</strong>';
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+  </script>
+</body>
+</html>

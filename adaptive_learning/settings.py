@@ -49,6 +49,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'learning.context_processors.notifications_processor',
+                'learning.context_processors.google_auth_processor',
             ],
         },
     },
@@ -103,6 +104,20 @@ AUTH_USER_MODEL = 'auth.User'
 # Admin Secret Key
 ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY', 'ADAPTIVE_ADMIN_2024')
 
+# Google OAuth2 Credentials
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
+
 # Email Backend for Password Reset (outputs to console during development)
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'emails')
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@adaptlearn.com'
+
+# Real SMTP Configuration (for Production)
+# To send real emails, uncomment the lines below and replace placeholders with your actual SMTP credentials.
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'          # Your SMTP provider host
+EMAIL_PORT = 587                        # SMTP port (usually 587 for TLS)
+EMAIL_USE_TLS = True                    # Secure connection
+EMAIL_HOST_USER = 'basavarajdhawale@gmail.com' # Your email address
+EMAIL_HOST_PASSWORD = 'osvb bjds ntwn akmg' # Your email account/app password
+DEFAULT_FROM_EMAIL = 'AdaptLearn <noreply@adaptlearn.com>'

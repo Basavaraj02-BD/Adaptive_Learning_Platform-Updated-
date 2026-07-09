@@ -17,18 +17,18 @@
           <div style="font-weight:700">{{ course.title }}</div>
           <div style="font-size:.8rem;color:var(--muted)">{{ course.get_difficulty_display }} · {{ course.duration_hrs }}h</div>
         </div>
-        <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800">₹{{ course.price }}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800">₹{{ price_to_pay }}</div>
       </div>
       <div class="d-flex justify-content-between align-items-center p-2">
-        <span style="color:var(--muted)">Subtotal</span><span>₹{{ course.price }}</span>
+        <span style="color:var(--muted)">Subtotal</span><span>₹{{ price_to_pay }}</span>
       </div>
       <div class="d-flex justify-content-between align-items-center p-2">
-        <span style="color:var(--muted)">Tax (18% GST)</span><span>₹{{ course.price|floatformat:2 }}</span>
+        <span style="color:var(--muted)">Tax (18% GST)</span><span>₹{{ price_to_pay|floatformat:2 }}</span>
       </div>
       <div class="divider"></div>
       <div class="d-flex justify-content-between align-items-center p-2">
         <span style="font-weight:700">Total</span>
-        <span style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent)">₹{{ course.price }}</span>
+        <span style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent)">₹{{ price_to_pay }}</span>
       </div>
     </div>
 
@@ -76,7 +76,7 @@
         </div>
 
         <button type="submit" class="btn-primary-glow btn w-100 btn-lg" id="payBtn">
-          <i class="fas fa-lock me-2"></i>Pay ₹{{ course.price }} Securely
+          <i class="fas fa-lock me-2"></i>Pay ₹{{ price_to_pay }} Securely
         </button>
       </form>
     </div>

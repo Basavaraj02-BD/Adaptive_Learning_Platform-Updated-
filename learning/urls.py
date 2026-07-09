@@ -27,8 +27,10 @@ urlpatterns = [
     path('courses/<int:course_id>/delete/', views.delete_course, name='delete_course'),
     path('courses/<slug:slug>/', views.course_detail, name='course_detail'),
     path('courses/<int:course_id>/enroll/', views.enroll_course, name='enroll_course'),
+    path('courses/<int:course_id>/restart/', views.restart_course, name='restart_course'),
     path('modules/<int:module_id>/', views.module_detail, name='module_detail'),
     path('materials/<int:material_id>/complete/', views.mark_material_complete, name='mark_material_complete'),
+    path('materials/<int:material_id>/time/', views.record_time_spent, name='record_time_spent'),
 
     # Exams
     path('exams/', views.exam_list, name='exam_list'),
@@ -64,7 +66,9 @@ urlpatterns = [
     path('discussion/<int:thread_id>/reply/', views.post_reply, name='post_reply'),
 
     # Forgot Password (Django Auth Views)
+    path('captcha/', views.generate_captcha, name='generate_captcha'),
     path('password_reset/', views.password_reset_custom, name='password_reset'),
+    path('password_reset/verify/', views.password_reset_verify, name='password_reset_verify'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
@@ -86,4 +90,10 @@ urlpatterns = [
     path('admin-panel/users/', views.admin_users, name='admin_users'),
     path('admin-panel/courses/', views.admin_courses, name='admin_courses'),
     path('admin-panel/users/<int:user_id>/toggle/', views.admin_toggle_user, name='admin_toggle_user'),
+
+    # Google OAuth
+    path('google/login/', views.google_login, name='google_login'),
+    path('google/callback/', views.google_callback, name='google_callback'),
+    path('google/callback-js/', views.google_callback_js, name='google_callback_js'),
+    path('google/simulator/', views.google_simulator, name='google_simulator'),
 ]

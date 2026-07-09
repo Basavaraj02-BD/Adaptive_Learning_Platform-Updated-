@@ -29,9 +29,15 @@
           <div style="font-size:.72rem;color:var(--muted)">Pass mark</div>
           <div style="font-weight:700;color:var(--green)">{{ exam.pass_marks }}/{{ exam.total_marks }}</div>
         </div>
+        {% if exam.is_locked %}
+        <a href="{% url 'payment_page' course_id=exam.course.id %}" class="btn-outline-glow btn" style="border-color:var(--accent3);color:var(--accent3);box-shadow:none;padding:.5rem 1.2rem;">
+          <i class="fas fa-lock me-1"></i>Locked
+        </a>
+        {% else %}
         <a href="{% url 'take_exam' exam_id=exam.id %}" class="btn-primary-glow btn">
           <i class="fas fa-play me-2"></i>Start Exam
         </a>
+        {% endif %}
       </div>
     </div>
   </div>

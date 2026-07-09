@@ -54,9 +54,15 @@
               <span style="font-size:.88rem;flex-grow:1">{{ mat.title }}</span>
               <span style="font-size:.75rem;color:var(--muted)">{{ mat.duration_mins }}m</span>
               {% if is_enrolled and not module.is_locked %}
-              <a href="{% url 'module_detail' module_id=module.id %}" style="font-size:.75rem;color:var(--accent)">Open</a>
+                {% if not course.is_free or has_paid or mat.id == first_material_id %}
+                  <a href="{% url 'module_detail' module_id=module.id %}" style="font-size:.75rem;color:var(--accent)">Open</a>
+                {% else %}
+                  <a href="{% url 'payment_page' course_id=course.id %}" style="font-size:.75rem;color:var(--accent3)" title="Pay to Unlock">
+                    <i class="fas fa-lock me-1"></i> Locked
+                  </a>
+                {% endif %}
               {% elif module.is_locked %}
-              <i class="fas fa-lock" style="color:var(--muted);font-size:.8rem"></i>
+                <i class="fas fa-lock" style="color:var(--muted);font-size:.8rem"></i>
               {% endif %}
             </div>
             {% endfor %}
@@ -83,10 +89,25 @@
         <div class="progress-glow"><div class="bar" style="width:{{ enrollment.completion_percent }}%"></div></div>
         <div style="font-size:.78rem;color:var(--muted);margin-top:.3rem">{{ enrollment.completion_percent }}% complete</div>
       </div>
+      {% if enrollment.completion_percent >= 100 or enrollment.status == 'completed' %}
+      <a href="{% url 'certificate' enrollment_id=enrollment.id %}" class="btn w-100 mb-2" style="background:linear-gradient(135deg,#ffd700,#ffa000);color:#0a0e1a;font-weight:800;border:none;border-radius:50px;box-shadow:0 4px 20px rgba(255,215,0,.35);display:flex;align-items:center;justify-content:center;padding:.65rem 1rem;">
+        <i class="fas fa-certificate me-2"></i>Claim Certificate
+      </a>
+      <div class="alert alert-success d-flex align-items-center justify-content-center gap-2 p-2 mb-2" style="background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2);border-radius:12px;color:#00e676;font-size:.88rem;font-weight:700;">
+        <i class="fas fa-check-circle"></i> Course Completed!
+      </div>
+      <form method="post" action="{% url 'restart_course' course_id=course.id %}" onsubmit="return confirm('Are you sure you want to restart this course? This will reset all your progress and you will need to complete it again to get your certificate.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-glow w-100 mb-2" style="border-radius:50px;padding:.6rem 1rem;font-weight:600;">
+          <i class="fas fa-undo me-2"></i>Restart Course
+        </button>
+      </form>
+      {% else %}
       <a href="{% url 'module_detail' module_id=modules.first.id %}" class="btn-primary-glow btn w-100 mb-2">
         <i class="fas fa-play me-2"></i>Continue Learning
       </a>
       <div class="text-center" style="font-size:.82rem;color:var(--green)"><i class="fas fa-check-circle me-1"></i>You are enrolled</div>
+      {% endif %}
       <div class="mt-3 text-center">
         <a href="{% url 'course_reviews' slug=course.slug %}" class="btn btn-sm" style="background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.3);border-radius:8px;">
           <i class="fas fa-star me-1"></i> View & Leave Reviews

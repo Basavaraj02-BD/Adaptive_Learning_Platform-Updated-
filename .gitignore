@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+
+# Local email backend logs
+emails/
+
+# Uploaded media (except course thumbnails if needed, but avatars should be ignored)
+media/avatars/
+

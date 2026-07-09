@@ -2,6 +2,14 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+  <script>
+    (function() {
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-mode');
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}AdaptLearn — Adaptive Learning Platform{% endblock %}</title>
@@ -31,6 +39,98 @@
       --radius-lg: 24px;
       --shadow:    0 8px 32px rgba(0,0,0,.45);
       --glow:      0 0 40px rgba(108,99,255,.25);
+    }
+
+    /* ── LIGHT THEME VARIABLES ── */
+    html.light-mode, html.light-mode body {
+      --bg:        #f8fafc;
+      --bg2:       #f1f5f9;
+      --bg3:       #e2e8f0;
+      --card:      rgba(15, 23, 42, 0.03);
+      --border:    rgba(15, 23, 42, 0.08);
+      --text:      #0f172a;
+      --text2:     #334155;
+      --muted:     #64748b;
+      --shadow:    0 8px 32px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 20px 60px rgba(15, 23, 42, 0.1);
+      --glow-sm:   0 0 20px rgba(108, 99, 255, 0.05);
+      --glow:      0 0 40px rgba(108, 99, 255, 0.08);
+      --glow-lg:   0 0 80px rgba(108, 99, 255, 0.12);
+    }
+    html.light-mode body::before {
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(108,99,255,.05) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(0,212,255,.04) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,101,132,.03) 0%, transparent 50%);
+    }
+    html.light-mode .navbar {
+      background: rgba(255,255,255,.85) !important;
+    }
+    html.light-mode .sidebar {
+      background: rgba(248,250,252,.95);
+    }
+    html.light-mode .sidebar-link:hover, html.light-mode .sidebar-link.active {
+      background: rgba(108,99,255,.08);
+    }
+    html.light-mode .glass-input {
+      background: rgba(15, 23, 42, 0.04) !important;
+      color: #0f172a !important;
+    }
+    html.light-mode .glass-input:focus {
+      background: #fff !important;
+    }
+    html.light-mode .form-select.glass-input option {
+      background: #fff;
+      color: #0f172a;
+    }
+    html.light-mode .dropdown-menu {
+      background: #fff !important;
+    }
+    html.light-mode .dropdown-item {
+      color: #0f172a !important;
+    }
+    html.light-mode .dropdown-item:hover {
+      background: rgba(108, 99, 255, 0.08) !important;
+    }
+    html.light-mode .glass-table tr:hover td {
+      background: rgba(15, 23, 42, 0.01);
+    }
+    html.light-mode .toast-msg {
+      background: #fff;
+    }
+    html.light-mode .sun-icon { display: none; }
+    html.light-mode .moon-icon { display: block; }
+    .sun-icon { display: block; }
+    .moon-icon { display: none; }
+
+    /* Theme Switcher Button styling unified with Login page toggle */
+    .theme-toggle-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.08) rotate(15deg);
+      border-color: var(--accent);
+    }
+    html.light-mode .theme-toggle-btn {
+      background: rgba(15, 23, 42, 0.04);
+      color: var(--text);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+    html.light-mode .theme-toggle-btn:hover {
+      background: rgba(15, 23, 42, 0.08);
+      border-color: var(--accent);
     }
 
     /* ── RESET & BASE ── */
@@ -422,6 +522,13 @@
         <i class="fas fa-brain me-2"></i>AdaptLearn
       </a>
       <div class="ms-auto d-flex align-items-center gap-3">
+        <!-- Theme Toggle -->
+        <button type="button" class="theme-toggle-btn"
+                onclick="toggleTheme()" aria-label="Toggle theme">
+          <i class="fas fa-sun sun-icon"></i>
+          <i class="fas fa-moon moon-icon"></i>
+        </button>
+
         {% if request.user.is_authenticated %}
         <!-- Search -->
         <form action="{% url 'search' %}" method="get" class="d-none d-lg-flex align-items-center">
@@ -443,9 +550,13 @@
           <!-- Avatar dropdown -->
           <div class="dropdown">
             <button class="btn d-flex align-items-center gap-2 px-3"
-                    style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:50px;color:var(--text)"
+                    style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:50px;color:var(--text);padding:.35rem 1rem"
                     data-bs-toggle="dropdown">
-              <i class="fas fa-user-circle"></i>
+              {% if request.user.profile and request.user.profile.avatar %}
+                <img src="{{ request.user.profile.avatar.url }}" alt="Profile" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+              {% else %}
+                <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i>
+              {% endif %}
               <span class="d-none d-md-inline">{{ request.user.first_name|default:request.user.username }}</span>
               <i class="fas fa-chevron-down fa-xs"></i>
             </button>
@@ -497,10 +608,14 @@
     <aside class="sidebar" id="sidebar">
       <div class="px-3 mb-2">
         <div class="d-flex align-items-center gap-2 p-3 glass" style="border-radius:14px">
-          <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-                      border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem">
-            <i class="fas fa-user"></i>
-          </div>
+          {% if request.user.profile and request.user.profile.avatar %}
+            <img src="{{ request.user.profile.avatar.url }}" alt="Profile" style="width:38px;height:38px;border-radius:50%;object-fit:cover">
+          {% else %}
+            <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+                        border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff">
+              <i class="fas fa-user"></i>
+            </div>
+          {% endif %}
           <div>
             <div style="font-weight:700;font-size:.9rem">{{ request.user.first_name|default:request.user.username }}</div>
             <div style="font-size:.75rem;color:var(--muted)">{{ request.user.profile.role|title|default:"Student" }}</div>
@@ -632,8 +747,17 @@
         sb.classList.remove('open');
       }
     });
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme') || 'dark';
+      const nextTheme = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', nextTheme);
+      localStorage.setItem('theme', nextTheme);
+      html.classList.toggle('light-mode', nextTheme === 'light');
+    }
   </script>
-  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/main.js' %}?v=1.2"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

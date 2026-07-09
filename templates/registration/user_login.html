@@ -2,6 +2,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function() {
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login — AdaptLearn</title>
@@ -23,7 +30,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      overflow-x: hidden;
     }
     body::before {
       content: '';
@@ -197,13 +204,339 @@
     .link-accent { color: var(--accent); text-decoration: none; font-weight: 600; }
     .link-accent:hover { color: var(--accent2); }
 
+    .btn-google-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: .8rem;
+      border-radius: 12px;
+      font-size: .95rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all .2s ease;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-google-login.student-btn {
+      background: rgba(108, 99, 255, 0.1);
+      border: 1px solid rgba(108, 99, 255, 0.2);
+      color: #b4b0ff;
+    }
+    .btn-google-login.student-btn:hover {
+      background: rgba(108, 99, 255, 0.2);
+      border-color: #6c63ff;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(108, 99, 255, 0.25);
+    }
+    .btn-google-login.instructor-btn {
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      color: #8ce6ff;
+    }
+    .btn-google-login.instructor-btn:hover {
+      background: rgba(0, 212, 255, 0.18);
+      border-color: #00d4ff;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 212, 255, 0.2);
+    }
+
+    .light-mode body {
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: rgba(15, 23, 42, 0.08);
+      --card: rgba(15, 23, 42, 0.03);
+    }
+    .light-mode body::before {
+      background:
+        radial-gradient(ellipse 70% 60% at 15% 20%, rgba(108,99,255,.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 85% 80%, rgba(0,212,255,.04) 0%, transparent 55%);
+    }
+    .light-mode .orb1 { background: rgba(108,99,255,.06); }
+    .light-mode .orb2 { background: rgba(0,212,255,.04); }
+    .light-mode .auth-panel-left { background: rgba(108,99,255,.02); }
+    .light-mode .auth-panel-right { background: rgba(255,255,255,.9); }
+    .light-mode .glass-input { background: rgba(15, 23, 42, 0.04) !important; color: #0f172a !important; }
+    .light-mode .glass-input:focus { background: #fff !important; }
+    .light-mode .feature-item { background: rgba(15, 23, 42, 0.02); }
+    .light-mode .alert-glass { background: rgba(255,101,132,.08); color: #dc2626; }
+    .light-mode .divider-text::before, .light-mode .divider-text::after { background: var(--border); }
+    .light-mode .input-toggle-password:hover { color: var(--accent); }
+
+    /* Floating Theme Switch */
+    .theme-toggle-container {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+    }
+    .theme-toggle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.08) rotate(15deg);
+      border-color: var(--accent);
+    }
+    .theme-toggle-btn .moon-icon { display: none; }
+    .theme-toggle-btn .sun-icon { display: block; }
+    
+    .light-mode .theme-toggle-btn {
+      background: rgba(15, 23, 42, 0.04);
+      color: var(--text);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+    .light-mode .theme-toggle-btn:hover {
+      background: rgba(15, 23, 42, 0.08);
+      border-color: var(--accent);
+    }
+    .light-mode .theme-toggle-btn .moon-icon { display: block; }
+    .light-mode .theme-toggle-btn .sun-icon { display: none; }
+
     @media (max-width: 900px) {
       .auth-panel-left { display: none; }
       .auth-panel-right { width: 100%; padding: 2rem 1.5rem; }
     }
+
+    /* Google Mock Popup Modal Styles */
+    .google-mock-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .google-mock-modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .google-mock-card {
+      background: #0f1420;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+      position: relative;
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .google-mock-modal-backdrop.active .google-mock-card {
+      transform: scale(1);
+    }
+    .google-mock-close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1.2rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .google-mock-close-btn:hover {
+      color: #fff;
+    }
+    .google-mock-logo {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+    .google-mock-logo span:nth-child(1) { color: #4285f4; }
+    .google-mock-logo span:nth-child(2) { color: #ea4335; }
+    .google-mock-logo span:nth-child(3) { color: #fbbc05; }
+    .google-mock-logo span:nth-child(4) { color: #4285f4; }
+    .google-mock-logo span:nth-child(5) { color: #34a853; }
+    .google-mock-logo span:nth-child(6) { color: #ea4335; }
+
+    .google-mock-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.2rem;
+      color: #fff;
+    }
+    .google-mock-subtitle {
+      color: var(--muted);
+      font-size: 0.88rem;
+      text-align: center;
+      margin-bottom: 1.8rem;
+    }
+    .google-mock-accounts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+    .google-mock-account-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .google-mock-account-item:hover {
+      border-color: rgba(66, 133, 244, 0.5);
+      background: rgba(66, 133, 244, 0.08);
+    }
+    .google-mock-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(66, 133, 244, 0.1);
+      color: #4285f4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .google-mock-info {
+      flex: 1;
+    }
+    .google-mock-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .google-mock-email {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .google-mock-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      background: rgba(108, 99, 255, 0.15);
+      color: #b4b0ff;
+      border: 1px solid rgba(108, 99, 255, 0.25);
+    }
+    .google-mock-badge.btn-instructor-badge {
+      background: rgba(0, 212, 255, 0.12);
+      color: #8ce6ff;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+    }
+    .google-mock-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin: 1.5rem 0;
+    }
+    .google-mock-divider::before,
+    .google-mock-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .google-mock-input {
+      padding: 0.65rem 0.85rem !important;
+      font-size: 0.88rem !important;
+    }
+    
+    /* Loading overlay */
+    .google-mock-loading {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 20, 32, 0.95);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 10;
+    }
+    .google-mock-loading.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .google-mock-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3.5px solid rgba(66, 133, 244, 0.15);
+      border-top-color: #4285f4;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    /* Light Mode */
+    .light-mode .google-mock-card {
+      background: #ffffff;
+      border-color: rgba(15, 23, 42, 0.08);
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
+    }
+    .light-mode .google-mock-title {
+      color: #0f172a;
+    }
+    .light-mode .google-mock-name {
+      color: #0f172a;
+    }
+    .light-mode .google-mock-account-item {
+      background: rgba(15, 23, 42, 0.02);
+    }
+    .light-mode .google-mock-account-item:hover {
+      background: rgba(66, 133, 244, 0.06);
+    }
+    .light-mode .google-mock-close-btn:hover {
+      color: #000;
+    }
+    .light-mode .google-mock-loading {
+      background: rgba(255, 255, 255, 0.98);
+      color: #0f172a;
+    }
   </style>
+  {% if GOOGLE_CLIENT_ID %}
+  <!-- Load Google Identity Services SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  {% endif %}
 </head>
 <body>
+  <div class="theme-toggle-container">
+    <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <i class="fas fa-sun sun-icon"></i>
+      <i class="fas fa-moon moon-icon"></i>
+    </button>
+  </div>
   <div class="orb orb1"></div>
   <div class="orb orb2"></div>
 
@@ -265,6 +598,22 @@
           </div>
         </div>
 
+        <div class="mb-3">
+          <label class="form-label">Verification Code (CAPTCHA)</label>
+          <div class="d-flex align-items-center gap-2">
+            <div style="flex: 1; position: relative;">
+              <i class="fas fa-shield-alt" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--muted); z-index: 5;"></i>
+              <input type="text" name="captcha" class="glass-input" placeholder="Enter Captcha" required style="padding-left: 2.8rem !important; height: 45px; width: 100%;">
+            </div>
+            <div class="d-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; height: 45px;">
+              <img src="{% url 'generate_captcha' %}" id="captchaImage" alt="Captcha" style="height: 38px; border-radius: 8px; cursor: pointer;" onclick="refreshCaptcha()">
+              <button type="button" class="btn" style="color: var(--accent); padding: 0 4px; border: none; background: transparent; display: flex; align-items: center;" onclick="refreshCaptcha()" title="Refresh Captcha">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="d-flex justify-content-between align-items-center mb-3" style="font-size:.88rem">
           <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;color:var(--muted)">
             <input type="checkbox" style="accent-color:var(--accent)"> Remember me
@@ -277,7 +626,25 @@
         </button>
       </form>
 
-      <div class="divider-text">or</div>
+      <div class="divider-text">or sign in with</div>
+
+      {% if GOOGLE_CLIENT_ID %}
+      <!-- GSI Sign In Buttons -->
+      <div class="d-flex flex-column align-items-center gap-2 mb-3">
+        <div id="google-signin-btn-student" class="w-100 d-flex justify-content-center"></div>
+        <div id="google-signin-btn-instructor" class="w-100 d-flex justify-content-center"></div>
+      </div>
+      {% else %}
+      <!-- Fallback Mock Sign In Buttons -->
+      <div class="d-flex flex-column gap-2 mb-3">
+        <button type="button" onclick="openGoogleMockModal('student')" class="btn-google-login student-btn border-0">
+          <i class="fab fa-google me-2"></i>Continue as Student
+        </button>
+        <button type="button" onclick="openGoogleMockModal('instructor')" class="btn-google-login instructor-btn border-0">
+          <i class="fab fa-google me-2"></i>Continue as Instructor
+        </button>
+      </div>
+      {% endif %}
 
       <div class="text-center mb-3" style="font-size:.9rem;color:var(--muted)">
         Don't have an account?
@@ -291,7 +658,223 @@
     </div>
   </div>
 
+  <!-- Google Mock Popup Modal -->
+  <div id="googleMockModal" class="google-mock-modal-backdrop">
+    <div class="google-mock-card">
+      <button class="google-mock-close-btn" onclick="closeGoogleMockModal()">&times;</button>
+      <div class="google-mock-logo">
+        <span>G</span><span>o</span><span>g</span><span>l</span><span>e</span>
+      </div>
+      <h2 class="google-mock-title">Choose an account</h2>
+      <p class="google-mock-subtitle">to continue to <span style="color:var(--accent);font-weight:600;">AdaptLearn</span></p>
+      
+      <div class="google-mock-accounts-list">
+        <!-- Sarah Connor -->
+        <div class="google-mock-account-item" onclick="submitMockGoogleLogin('sarah.student@gmail.com', 'Sarah', 'Connor')">
+          <div class="google-mock-avatar"><i class="fab fa-google"></i></div>
+          <div class="google-mock-info">
+            <div class="google-mock-name">Sarah Connor</div>
+            <div class="google-mock-email">sarah.student@gmail.com</div>
+          </div>
+          <div class="google-mock-badge">Student</div>
+        </div>
+        <!-- Alex Mercer -->
+        <div class="google-mock-account-item" onclick="submitMockGoogleLogin('alex.instructor@gmail.com', 'Alex', 'Mercer')">
+          <div class="google-mock-avatar"><i class="fab fa-google"></i></div>
+          <div class="google-mock-info">
+            <div class="google-mock-name">Alex Mercer</div>
+            <div class="google-mock-email">alex.instructor@gmail.com</div>
+          </div>
+          <div class="google-mock-badge btn-instructor-badge">Instructor</div>
+        </div>
+      </div>
+
+      <div class="google-mock-divider"><span>or use custom account</span></div>
+
+      <form id="googleMockCustomForm" onsubmit="handleMockCustomSubmit(event)">
+        <div class="mb-3">
+          <input type="email" id="mockCustomEmail" class="glass-input google-mock-input" placeholder="Email address" required />
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <input type="text" id="mockCustomFirstName" class="glass-input google-mock-input" placeholder="First Name" />
+          </div>
+          <div class="col-6">
+            <input type="text" id="mockCustomLastName" class="glass-input google-mock-input" placeholder="Last Name" />
+          </div>
+        </div>
+        <button type="submit" class="btn-login" style="background: linear-gradient(135deg, #4285f4, #1a73e8); color: white; border: none; font-size: 0.9rem;">
+          <i class="fab fa-google me-2"></i>Sign In Mock Account
+        </button>
+      </form>
+      
+      <div class="google-mock-loading" id="googleMockLoading">
+        <div class="google-mock-spinner"></div>
+        <p>Verifying with Google...</p>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Global variable to capture the clicked role
+    window.googleSignInRole = 'student';
+
+    // Real Google SDK initialization
+    {% if GOOGLE_CLIENT_ID %}
+    window.onload = function() {
+        if (typeof google !== 'undefined') {
+            google.accounts.id.initialize({
+                client_id: "{{ GOOGLE_CLIENT_ID }}",
+                callback: handleGoogleSignInResponse
+            });
+
+            // Dynamically render the buttons
+            const studentBtnDiv = document.getElementById("google-signin-btn-student");
+            if (studentBtnDiv) {
+                google.accounts.id.renderButton(
+                    studentBtnDiv,
+                    { theme: "outline", size: "large", width: "350", text: "continue_with", shape: "rectangular" }
+                );
+            }
+
+            const instructorBtnDiv = document.getElementById("google-signin-btn-instructor");
+            if (instructorBtnDiv) {
+                google.accounts.id.renderButton(
+                    instructorBtnDiv,
+                    { theme: "outline", size: "large", width: "350", text: "signin_with", shape: "rectangular" }
+                );
+            }
+
+            // Register event listeners to capture the role prior to the GSI iframe click
+            studentBtnDiv?.addEventListener('click', () => { window.googleSignInRole = 'student'; });
+            studentBtnDiv?.addEventListener('mousedown', () => { window.googleSignInRole = 'student'; });
+
+            instructorBtnDiv?.addEventListener('click', () => { window.googleSignInRole = 'instructor'; });
+            instructorBtnDiv?.addEventListener('mousedown', () => { window.googleSignInRole = 'instructor'; });
+
+            // Prompt Google One Tap
+            google.accounts.id.prompt();
+        }
+    };
+
+    function handleGoogleSignInResponse(response) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+        const role = window.googleSignInRole || 'student';
+        
+        // Show loading status
+        const loadingDiv = document.getElementById("googleMockLoading");
+        if (loadingDiv) {
+            loadingDiv.classList.add("active");
+        }
+
+        fetch("{% url 'google_callback_js' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                credential: response.credential,
+                role: role
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message || 'Google Sign-In failed.');
+                if (loadingDiv) {
+                    loadingDiv.classList.remove("active");
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Google Sign-In Error:', err);
+            alert('An error occurred during Google Sign-In.');
+            if (loadingDiv) {
+                loadingDiv.classList.remove("active");
+            }
+        });
+    }
+    {% endif %}
+
+    // Simulator triggers and handlers
+    function openGoogleMockModal(role) {
+        window.googleSignInRole = role;
+        const modal = document.getElementById("googleMockModal");
+        
+        // Update styling of custom role badge/headers inside simulator popup
+        const modalTitle = document.querySelector(".google-mock-title");
+        modalTitle.innerText = `Continue as ${role.charAt(0).toUpperCase() + role.slice(1)}`;
+        
+        modal.classList.add("active");
+    }
+
+    function closeGoogleMockModal() {
+        document.getElementById("googleMockModal").classList.remove("active");
+    }
+
+    function submitMockGoogleLogin(email, firstName, lastName) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+        const role = window.googleSignInRole || 'student';
+        const loadingDiv = document.getElementById("googleMockLoading");
+        
+        loadingDiv.classList.add("active");
+
+        fetch("{% url 'google_simulator' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                email: email,
+                first_name: firstName,
+                last_name: lastName,
+                role: role
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert(data.message || 'Mock login failed');
+                loadingDiv.classList.remove("active");
+            }
+        })
+        .catch(err => {
+            console.error('Error during mock Google sign in:', err);
+            alert('Mock login request failed.');
+            loadingDiv.classList.remove("active");
+        });
+    }
+
+    function handleMockCustomSubmit(event) {
+        event.preventDefault();
+        const email = document.getElementById("mockCustomEmail").value.trim();
+        const firstName = document.getElementById("mockCustomFirstName").value.trim();
+        const lastName = document.getElementById("mockCustomLastName").value.trim();
+        submitMockGoogleLogin(email, firstName, lastName);
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     function togglePwd(el) {
       const inp = el.closest('.position-relative').querySelector('input');
       const icon = el.querySelector('i');
@@ -302,6 +885,15 @@
         inp.type = 'password';
         icon.className = 'fas fa-eye';
       }
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+
+    function refreshCaptcha() {
+      document.getElementById('captchaImage').src = "{% url 'generate_captcha' %}?t=" + new Date().getTime();
     }
   </script>
 </body>

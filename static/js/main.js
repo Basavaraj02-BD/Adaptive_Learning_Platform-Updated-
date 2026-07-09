@@ -1,7 +1,4 @@
-/* ═══════════════════════════════════════════
-   AdaptLearn — Main JavaScript
-   Utilities + Interactive Features
-═══════════════════════════════════════════ */
+
 
 'use strict';
 
@@ -26,9 +23,9 @@ const Toast = {
   show(message, type = 'info', duration = 4500) {
     const icons = {
       success: 'fa-check-circle',
-      error:   'fa-exclamation-circle',
+      error: 'fa-exclamation-circle',
       warning: 'fa-exclamation-triangle',
-      info:    'fa-info-circle',
+      info: 'fa-info-circle',
     };
     const colors = {
       success: '#00e676', error: '#ff6584', warning: '#ffd700', info: '#00d4ff',
@@ -56,7 +53,7 @@ const Toast = {
 /* ── CSRF TOKEN HELPER ── */
 function getCsrf() {
   return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
-         document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
+    document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
 }
 
 /* ── API HELPER ── */
@@ -99,8 +96,8 @@ const Sidebar = {
   },
 
   toggle() { this.el?.classList.toggle('open'); this._syncOverlay(); },
-  open()   { this.el?.classList.add('open');    this._syncOverlay(); },
-  close()  { this.el?.classList.remove('open'); this._syncOverlay(); },
+  open() { this.el?.classList.add('open'); this._syncOverlay(); },
+  close() { this.el?.classList.remove('open'); this._syncOverlay(); },
   _syncOverlay() {
     if (this.overlay) {
       this.overlay.style.display = this.el?.classList.contains('open') ? 'block' : 'none';
@@ -113,7 +110,7 @@ function toggleSidebar() { Sidebar.toggle(); }
 function animateCounter(el, target, duration = 1500) {
   const start = performance.now();
   const startVal = 0;
-  const easing = t => t < .5 ? 2*t*t : -1+(4-2*t)*t;
+  const easing = t => t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
   function step(timestamp) {
     const elapsed = timestamp - start;
@@ -151,9 +148,9 @@ function validateEmail(email) {
 }
 function validatePassword(pwd) {
   return {
-    length:  pwd.length >= 8,
-    upper:   /[A-Z]/.test(pwd),
-    number:  /[0-9]/.test(pwd),
+    length: pwd.length >= 8,
+    upper: /[A-Z]/.test(pwd),
+    number: /[0-9]/.test(pwd),
     special: /[^A-Za-z0-9]/.test(pwd),
   };
 }
@@ -162,7 +159,7 @@ function validatePassword(pwd) {
 function initPasswordStrength() {
   const inputs = document.querySelectorAll('input[name="password1"]');
   inputs.forEach(inp => {
-    const bar  = inp.closest('form')?.querySelector('#strengthBar');
+    const bar = inp.closest('form')?.querySelector('#strengthBar');
     const hint = inp.closest('form')?.querySelector('#strengthHint');
     if (!bar) return;
     inp.addEventListener('input', () => {
@@ -170,7 +167,7 @@ function initPasswordStrength() {
       const score = Object.values(v).filter(Boolean).length;
       const colors = ['', '#ff6584', '#ffd700', '#00d4ff', '#00e676'];
       const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
-      bar.style.width  = (score * 25) + '%';
+      bar.style.width = (score * 25) + '%';
       bar.style.background = colors[score] || '#ff6584';
       if (hint) { hint.textContent = labels[score] || ''; hint.style.color = colors[score]; }
     });
@@ -219,7 +216,7 @@ function startCountdown(seconds, displayEl, onEnd) {
     remaining--;
     const m = Math.floor(remaining / 60);
     const s = remaining % 60;
-    displayEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    displayEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     if (remaining <= 0) { clearInterval(interval); onEnd?.(); }
   }, 1000);
   return interval;
@@ -257,7 +254,7 @@ function initLiveSearch(inputId, tableId) {
 async function markNotifRead(notifId) {
   try {
     await api(`/notifications/${notifId}/read/`);
-  } catch {}
+  } catch { }
 }
 
 /* ── MARK MATERIAL COMPLETE ── */
@@ -275,13 +272,9 @@ async function markComplete(materialId, btn) {
   }
 }
 
-/* ── DARK MODE TOGGLE (future) ── */
-function toggleTheme() {
-  const html = document.documentElement;
-  const current = html.getAttribute('data-theme') || 'dark';
-  html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-  localStorage.setItem('theme', html.getAttribute('data-theme'));
-}
+/* ── DARK MODE TOGGLE ──
+   Defined inline in base.html to avoid browser caching issues with static files.
+*/
 
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', () => {

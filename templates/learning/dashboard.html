@@ -81,9 +81,24 @@
           <div class="flex-grow-1 min-width-0">
             <div style="font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ enr.course.title }}</div>
             <div class="progress-glow mt-1"><div class="bar" style="width:{{ enr.completion_percent }}%"></div></div>
-            <div style="font-size:.75rem;color:var(--muted);margin-top:.25rem">{{ enr.completion_percent }}% complete</div>
+            <div style="font-size:.75rem;color:var(--muted);margin-top:.25rem;display:flex;gap:.8rem">
+              <span>{{ enr.completion_percent }}% complete</span>
+              <span style="color:var(--accent2)"><i class="fas fa-clock me-1"></i>{{ enr.time_spent_display }}</span>
+            </div>
           </div>
-          <a href="{% url 'course_detail' slug=enr.course.slug %}" class="btn-primary-glow btn btn-sm" style="flex-shrink:0">Continue</a>
+          {% if enr.completion_percent >= 100 or enr.status == 'completed' %}
+            <div class="d-flex align-items-center gap-2" style="flex-shrink:0;">
+              <a href="{% url 'certificate' enrollment_id=enr.id %}" class="btn btn-sm" style="background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.3);border-radius:8px;">
+                <i class="fas fa-certificate me-1"></i>Certificate
+              </a>
+              <span class="badge" style="background:rgba(0,230,118,.15);color:#00e676;border-radius:50px;padding:.4rem .8rem;font-size:.78rem;font-weight:600;">
+                <i class="fas fa-check-circle me-1"></i>Completed
+              </span>
+              <a href="{% url 'course_detail' slug=enr.course.slug %}" class="btn-outline-glow btn btn-sm">Review</a>
+            </div>
+          {% else %}
+            <a href="{% url 'course_detail' slug=enr.course.slug %}" class="btn-primary-glow btn btn-sm" style="flex-shrink:0">Continue</a>
+          {% endif %}
         </div>
         {% endfor %}
       {% else %}

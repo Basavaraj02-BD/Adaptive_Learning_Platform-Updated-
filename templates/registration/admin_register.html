@@ -2,6 +2,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function() {
+      if (localStorage.getItem('theme') === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Admin Registration — AdaptLearn</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -36,9 +43,77 @@
     .secret-box{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:14px;padding:1rem;margin-bottom:1.2rem}
     .secret-box p{font-size:.82rem;color:var(--muted);margin:0}
     .admin-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:50px;padding:.3rem .9rem;font-size:.8rem;color:#ffd700;margin-bottom:1rem}
+
+    .light-mode body {
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: rgba(15, 23, 42, 0.08);
+    }
+    .light-mode body::before {
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255,215,0,.05) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(255,107,53,.04) 0%, transparent 55%);
+    }
+    .light-mode .orb1 { background: rgba(255,215,0,.04); }
+    .light-mode .orb2 { background: rgba(255,107,53,.03); }
+    .light-mode .register-card { background: rgba(255,255,255,.85); }
+    .light-mode .glass-input { background: rgba(15, 23, 42, 0.04) !important; color: #0f172a !important; }
+    .light-mode .glass-input:focus { background: #fff !important; }
+    .light-mode .feature-item { background: rgba(15, 23, 42, 0.02); }
+    .light-mode .alert-glass { background: rgba(255,101,132,.08); color: #dc2626; }
+    .light-mode .secret-box { background: rgba(255, 215, 0, 0.04); border-color: rgba(255, 215, 0, 0.15); }
+    .light-mode .secret-box p { color: #555; }
+
+    /* Floating Theme Switch */
+    .theme-toggle-container {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+    }
+    .theme-toggle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: scale(1.08) rotate(15deg);
+      border-color: var(--accent);
+    }
+    .theme-toggle-btn .moon-icon { display: none; }
+    .theme-toggle-btn .sun-icon { display: block; }
+    
+    .light-mode .theme-toggle-btn {
+      background: rgba(15, 23, 42, 0.04);
+      color: var(--text);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    }
+    .light-mode .theme-toggle-btn:hover {
+      background: rgba(15, 23, 42, 0.08);
+      border-color: var(--accent);
+    }
+    .light-mode .theme-toggle-btn .moon-icon { display: block; }
+    .light-mode .theme-toggle-btn .sun-icon { display: none; }
   </style>
 </head>
 <body>
+  <div class="theme-toggle-container">
+    <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <i class="fas fa-sun sun-icon"></i>
+      <i class="fas fa-moon moon-icon"></i>
+    </button>
+  </div>
   <div class="orb orb1"></div><div class="orb orb2"></div>
   <div class="register-card">
     <div class="text-center mb-2">
@@ -121,5 +196,11 @@
       <a href="{% url 'user_login' %}" class="link-accent">User Login</a>
     </div>
   </div>
+  <script>
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+  </script>
 </body>
 </html>

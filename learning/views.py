@@ -27,16 +27,19 @@ from .forms import (
 )
 
 
-# ──────────────────────────────────────────
 # HELPERS
-# ──────────────────────────────────────────
+
 def is_admin(user):
-    return user.is_authenticated and (user.is_superuser or getattr(getattr(user, 'profile', None), 'role', '') == 'admin')
+    return user.is_authenticated and (
+                user.is_superuser or getattr(getattr(user, 'profile', None), 'role', '') == 'admin')
+
 
 def is_instructor(user):
     return user.is_authenticated and (
-        getattr(getattr(user, 'profile', None), 'role', '') == 'instructor'
+            getattr(getattr(user, 'profile', None), 'role', '') == 'instructor'
     )
+
+
 def send_notification(recipient, title, message, notif_type='system', link=''):
     Notification.objects.create(
         recipient=recipient, title=title,
@@ -44,9 +47,8 @@ def send_notification(recipient, title, message, notif_type='system', link=''):
     )
 
 
-# ══════════════════════════════════════════
 #  HOME
-# ══════════════════════════════════════════
+
 def home(request):
     if request.user.is_authenticated:
         if is_admin(request.user):
@@ -59,9 +61,8 @@ def home(request):
     return render(request, 'learning/home.html', {'courses': courses})
 
 
-# ══════════════════════════════════════════
 #  AUTH — USER REGISTRATION
-# ══════════════════════════════════════════
+
 def user_register(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -70,7 +71,8 @@ def user_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Start your learning journey.', 'system')
+            send_notification(user, 'Welcome! 🎉',
+                              f'Welcome to AdaptLearn, {user.first_name}! Start your learning journey.', 'system')
             messages.success(request, f'Account created! Welcome, {user.first_name}!')
             return redirect('dashboard')
         else:
@@ -80,13 +82,12 @@ def user_register(request):
     return render(request, 'registration/user_register.html', {'form': form})
 
 
-# ══════════════════════════════════════════
 #  AUTH — ADMIN REGISTRATION
-# ══════════════════════════════════════════
+
 def admin_register(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    
+
     # Check if an admin already exists
     if User.objects.filter(is_superuser=True).exists() or UserProfile.objects.filter(role='admin').exists():
         messages.error(request, 'An admin is already registered. Only one admin is allowed on this platform.')
@@ -106,9 +107,53 @@ def admin_register(request):
     return render(request, 'registration/admin_register.html', {'form': form})
 
 
-# ══════════════════════════════════════════
+#  AUTH — CAPTCHA GENERATOR
+
+def generate_captcha(request):
+    from PIL import Image, ImageDraw, ImageFont
+    import random
+    import io
+    from django.http import HttpResponse
+
+    # Generate random 5-character string (omit ambiguous characters like 0, O, 1, I)
+    chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+    code = ''.join(random.choice(chars) for _ in range(5))
+    request.session['login_captcha'] = code
+
+    # Create image
+    img = Image.new('RGB', (120, 45), color=(20, 24, 33))  # Dark theme background
+    draw = ImageDraw.Draw(img)
+
+    # Draw noise lines
+    for _ in range(8):
+        x1 = random.randint(0, 120)
+        y1 = random.randint(0, 45)
+        x2 = random.randint(0, 120)
+        y2 = random.randint(0, 45)
+        draw.line([(x1, y1), (x2, y2)], fill=(108, 99, 255), width=1)
+
+    # Draw text
+    try:
+        font = ImageFont.truetype("arial.ttf", 22)
+    except IOError:
+        font = ImageFont.load_default()
+
+    # Draw characters with slight random spacing/position
+    for i, char in enumerate(code):
+        x = 12 + i * 20 + random.randint(-2, 2)
+        y = 8 + random.randint(-4, 4)
+        draw.text((x, y), char, font=font, fill=(0, 212, 255))
+
+    # Save to buffer
+    buf = io.BytesIO()
+    img.save(buf, format='png')
+    buf.seek(0)
+
+    return HttpResponse(buf.read(), content_type='image/png')
+
+
 #  AUTH — USER LOGIN
-# ══════════════════════════════════════════
+
 def user_login(request):
     if request.user.is_authenticated:
         if is_admin(request.user):
@@ -118,6 +163,13 @@ def user_login(request):
         else:
             return redirect('dashboard')
     if request.method == 'POST':
+        captcha_input = request.POST.get('captcha', '').strip().upper()
+        session_captcha = request.session.get('login_captcha', '')
+        if not session_captcha or captcha_input != session_captcha:
+            messages.error(request, 'Invalid captcha. Please try again.')
+            form = UserLoginForm(request, data=request.POST)
+            return render(request, 'registration/user_login.html', {'form': form})
+
         form = UserLoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
@@ -138,13 +190,19 @@ def user_login(request):
     return render(request, 'registration/user_login.html', {'form': form})
 
 
-# ══════════════════════════════════════════
 #  AUTH — ADMIN LOGIN
-# ══════════════════════════════════════════
+
 def admin_login(request):
     if request.user.is_authenticated and is_admin(request.user):
         return redirect('admin_dashboard')
     if request.method == 'POST':
+        captcha_input = request.POST.get('captcha', '').strip().upper()
+        session_captcha = request.session.get('login_captcha', '')
+        if not session_captcha or captcha_input != session_captcha:
+            messages.error(request, 'Invalid captcha. Please try again.')
+            form = AdminLoginForm(request, data=request.POST)
+            return render(request, 'registration/admin_login.html', {'form': form})
+
         form = AdminLoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
@@ -161,31 +219,38 @@ def admin_login(request):
     return render(request, 'registration/admin_login.html', {'form': form})
 
 
-# ══════════════════════════════════════════
 #  AUTH — LOGOUT
-# ══════════════════════════════════════════
+
 def user_logout(request):
     logout(request)
     messages.info(request, 'You have been logged out.')
     return redirect('user_login')
 
 
-# ══════════════════════════════════════════
 #  STUDENT DASHBOARD
-# ══════════════════════════════════════════
+
 @login_required
 def dashboard(request):
     user = request.user
-    enrollments = Enrollment.objects.filter(student=user, status='active').select_related('course')
+    enrollments = Enrollment.objects.filter(student=user, status__in=['active', 'completed']).select_related('course')
     recent_results = ExamResult.objects.filter(student=user).select_related('exam')[:5]
-    notifications  = Notification.objects.filter(recipient=user, is_read=False)[:5]
-    total_courses  = enrollments.count()
-    completed      = enrollments.filter(status='completed').count()
-    avg_score      = ExamResult.objects.filter(student=user).aggregate(a=Avg('percentage'))['a'] or 0
+    notifications = Notification.objects.filter(recipient=user, is_read=False)[:5]
+    total_courses = enrollments.count()
+    completed = enrollments.filter(models.Q(status='completed') | models.Q(completion_percent__gte=100)).count()
+    avg_score = ExamResult.objects.filter(student=user).aggregate(a=Avg('percentage'))['a'] or 0
+
+    # Annotate each enrollment with total time spent (in minutes)
+    for enr in enrollments:
+        total_mins = StudentProgress.objects.filter(
+            student=user, enrollment=enr
+        ).aggregate(total=Sum('time_spent_mins'))['total'] or 0
+        enr.total_time_spent_mins = total_mins
+        hours, mins = divmod(total_mins, 60)
+        enr.time_spent_display = f"{hours}h {mins}m" if hours else f"{mins}m"
 
     # Adaptive recommendation
     profile = getattr(user, 'profile', None)
-    skill   = profile.skill_level if profile else 'beginner'
+    skill = profile.skill_level if profile else 'beginner'
     recommended = Course.objects.filter(status='published', difficulty=skill).exclude(
         id__in=enrollments.values_list('course_id', flat=True)
     )[:4]
@@ -202,22 +267,21 @@ def dashboard(request):
     return render(request, 'learning/dashboard.html', context)
 
 
-# ══════════════════════════════════════════
 #  ADMIN DASHBOARD
-# ══════════════════════════════════════════
+
 @login_required
 def admin_dashboard(request):
     if not is_admin(request.user):
         messages.error(request, 'Admin access required.')
         return redirect('dashboard')
 
-    total_users   = User.objects.count()
+    total_users = User.objects.count()
     total_courses = Course.objects.count()
     total_enrollments = Enrollment.objects.count()
     total_revenue = Payment.objects.filter(status='completed').aggregate(s=Sum('amount'))['s'] or 0
-    recent_users  = User.objects.order_by('-date_joined')[:10]
-    recent_payments = Payment.objects.select_related('student','course').order_by('-created_at')[:10]
-    course_stats  = Course.objects.annotate(enrolled=Count('enrollments')).order_by('-enrolled')[:8]
+    recent_users = User.objects.order_by('-date_joined')[:10]
+    recent_payments = Payment.objects.select_related('student', 'course').order_by('-created_at')[:10]
+    course_stats = Course.objects.annotate(enrolled=Count('enrollments')).order_by('-enrolled')[:8]
 
     context = {
         'total_users': total_users,
@@ -231,18 +295,18 @@ def admin_dashboard(request):
     return render(request, 'learning/admin_dashboard.html', context)
 
 
-# ══════════════════════════════════════════
 #  COURSES
-# ══════════════════════════════════════════
+
 def course_list(request):
     courses = Course.objects.filter(status='published')
     difficulty = request.GET.get('difficulty', '')
-    search     = request.GET.get('q', '')
+    search = request.GET.get('q', '')
     if difficulty:
         courses = courses.filter(difficulty=difficulty)
     if search:
         courses = courses.filter(title__icontains=search)
-    return render(request, 'learning/course_list.html', {'courses': courses, 'difficulty': difficulty, 'search': search})
+    return render(request, 'learning/course_list.html',
+                  {'courses': courses, 'difficulty': difficulty, 'search': search})
 
 
 @login_required
@@ -251,9 +315,22 @@ def course_detail(request, slug):
     modules = Module.objects.filter(course=course).prefetch_related('materials')
     is_enrolled = Enrollment.objects.filter(student=request.user, course=course).exists()
     enrollment = Enrollment.objects.filter(student=request.user, course=course).first()
+
+    # Check if the user has paid for this course (completed payment, excluding 'free' method)
+    has_paid = Payment.objects.filter(
+        student=request.user, course=course, status='completed'
+    ).exclude(payment_method='free').exists()
+
+    # Get the first learning material of the entire course
+    first_material = LearningMaterial.objects.filter(
+        module__course=course
+    ).order_by('module__order', 'order').first()
+    first_material_id = first_material.id if first_material else None
+
     return render(request, 'learning/course_detail.html', {
         'course': course, 'modules': modules,
         'is_enrolled': is_enrolled, 'enrollment': enrollment,
+        'has_paid': has_paid, 'first_material_id': first_material_id,
     })
 
 
@@ -271,7 +348,8 @@ def enroll_course(request, course_id):
                                transaction_id=f'FREE-{request.user.id}-{course.id}-{timezone.now().timestamp():.0f}')
         course.total_enrolled += 1
         course.save(update_fields=['total_enrolled'])
-        send_notification(request.user, 'Enrolled! 🎓', f'You joined "{course.title}"', 'enrollment', f'/courses/{course.slug}/')
+        send_notification(request.user, 'Enrolled! 🎓', f'You joined "{course.title}"', 'enrollment',
+                          f'/courses/{course.slug}/')
         messages.success(request, f'Successfully enrolled in {course.title}!')
     else:
         return redirect('payment_page', course_id=course.id)
@@ -280,13 +358,29 @@ def enroll_course(request, course_id):
 
 @login_required
 def module_detail(request, module_id):
-    module  = get_object_or_404(Module, id=module_id)
+    module = get_object_or_404(Module, id=module_id)
     is_enrolled = Enrollment.objects.filter(student=request.user, course=module.course).exists()
     if not is_enrolled:
         messages.error(request, 'Enroll first.')
         return redirect('course_detail', slug=module.course.slug)
     materials = module.materials.all()
     enrollment = Enrollment.objects.get(student=request.user, course=module.course)
+
+    # Check if the user has paid for this course (completed payment, excluding 'free' method)
+    has_paid = Payment.objects.filter(
+        student=request.user, course=module.course, status='completed'
+    ).exclude(payment_method='free').exists()
+
+    # Get the first learning material of the entire course
+    first_material = LearningMaterial.objects.filter(
+        module__course=module.course
+    ).order_by('module__order', 'order').first()
+    first_material_id = first_material.id if first_material else None
+
+    # Calculate price_to_pay (using same logic: course.price if > 0 else 299.00)
+    course = module.course
+    price_to_pay = course.price if (course.price and course.price > 0) else 299.00
+
     # Update progress
     completed_ids = StudentProgress.objects.filter(
         student=request.user, is_completed=True,
@@ -299,6 +393,9 @@ def module_detail(request, module_id):
     return render(request, 'learning/module_detail.html', {
         'module': module, 'materials': materials,
         'completed_ids': list(completed_ids),
+        'has_paid': has_paid,
+        'first_material_id': first_material_id,
+        'price_to_pay': price_to_pay,
     })
 
 
@@ -306,24 +403,64 @@ def module_detail(request, module_id):
 @require_POST
 def mark_material_complete(request, material_id):
     material = get_object_or_404(LearningMaterial, id=material_id)
-    enrollment = get_object_or_404(Enrollment, student=request.user, course=material.module.course)
+    course = material.module.course
+    enrollment = get_object_or_404(Enrollment, student=request.user, course=course)
+
+    # If the course is free and user hasn't paid, they can only complete the first lesson
+    if course.is_free:
+        has_paid = Payment.objects.filter(
+            student=request.user, course=course, status='completed'
+        ).exclude(payment_method='free').exists()
+
+        if not has_paid:
+            first_material = LearningMaterial.objects.filter(
+                module__course=course
+            ).order_by('module__order', 'order').first()
+
+            if first_material and material.id != first_material.id:
+                messages.error(request, 'You must pay to unlock this lesson and mark it complete.')
+                return redirect('module_detail', module_id=material.module.id)
+
     progress, created = StudentProgress.objects.get_or_create(
         student=request.user, material=material,
         defaults={'enrollment': enrollment}
     )
-    progress.is_completed = True
-    progress.save()
-    messages.success(request, 'Material marked as complete.')
+    if not progress.is_completed:
+        progress.is_completed = True
+        progress.save()
+
+        # Award 10 XP points
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.total_points += 10
+        profile.save()
+        messages.success(request, 'Material marked as complete. Earned +10 XP! 🌟')
+    else:
+        messages.info(request, 'Material is already marked as complete.')
+
     return redirect('module_detail', module_id=material.module.id)
 
 
-# ══════════════════════════════════════════
 #  EXAMS
-# ══════════════════════════════════════════
+
 @login_required
 def exam_list(request):
     enrollments = Enrollment.objects.filter(student=request.user).values_list('course_id', flat=True)
-    exams = Exam.objects.filter(course_id__in=enrollments, is_active=True)
+    exams = Exam.objects.filter(course_id__in=enrollments, is_active=True).select_related('course', 'module')
+
+    # Calculate locked status for each exam
+    for exam in exams:
+        if exam.course.is_free:
+            has_paid = Payment.objects.filter(
+                student=request.user, course=exam.course, status='completed'
+            ).exclude(payment_method='free').exists()
+            if not has_paid:
+                first_module = Module.objects.filter(course=exam.course).order_by('order').first()
+                exam.is_locked = (exam.module != first_module)
+            else:
+                exam.is_locked = False
+        else:
+            exam.is_locked = False
+
     return render(request, 'learning/exam_list.html', {'exams': exams})
 
 
@@ -331,6 +468,18 @@ def exam_list(request):
 def take_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id)
     enrollment = get_object_or_404(Enrollment, student=request.user, course=exam.course)
+
+    # If the course is free and user hasn't paid, they can only take exams in the first module
+    if exam.course.is_free:
+        has_paid = Payment.objects.filter(
+            student=request.user, course=exam.course, status='completed'
+        ).exclude(payment_method='free').exists()
+
+        if not has_paid:
+            first_module = Module.objects.filter(course=exam.course).order_by('order').first()
+            if exam.module != first_module:
+                messages.error(request, 'You must pay to unlock this exam.')
+                return redirect('course_detail', slug=exam.course.slug)
 
     attempts = ExamResult.objects.filter(student=request.user, exam=exam).count()
     if attempts >= exam.max_attempts:
@@ -366,9 +515,25 @@ def take_exam(request, exam_id):
         # Generate score feedback
         result.ai_feedback = generate_ai_feedback(request.user, exam, score, pct)
         result.save()
+
+        # Award XP if passed and haven't passed before
+        xp_earned = 0
+        if status == 'pass':
+            already_passed = ExamResult.objects.filter(student=request.user, exam=exam, status='pass').exclude(
+                id=result.id).exists()
+            if not already_passed:
+                xp_earned = 100 if exam.exam_type == 'final' else 50
+                profile, _ = UserProfile.objects.get_or_create(user=request.user)
+                profile.total_points += xp_earned
+                profile.save()
+
         send_notification(request.user, 'Exam Submitted ✅',
                           f'"{exam.title}" — {pct:.1f}% — {status.upper()}', 'result', f'/results/{result.id}/')
-        messages.success(request, 'Exam submitted!')
+
+        if xp_earned > 0:
+            messages.success(request, f'Exam submitted! You passed and earned +{xp_earned} XP! 🏆')
+        else:
+            messages.success(request, 'Exam submitted!')
         return redirect('exam_result', result_id=result.id)
 
     return render(request, 'learning/take_exam.html', {
@@ -413,18 +578,20 @@ def generate_ai_feedback(user, exam, score, pct):
         )
 
 
-# ══════════════════════════════════════════
 #  PAYMENT
-# ══════════════════════════════════════════
+
 @login_required
 def payment_page(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+    # If the course is free or has a 0 price, charge a default unlock fee of 299.00
+    price_to_pay = course.price if (course.price and course.price > 0) else 299.00
+
     if request.method == 'POST':
         # Simulate payment success (integrate Stripe/Razorpay in production)
         txn_id = f'TXN-{request.user.id}-{course.id}-{timezone.now().timestamp():.0f}'
         payment = Payment.objects.create(
             student=request.user, course=course,
-            amount=course.price, status='completed',
+            amount=price_to_pay, status='completed',
             payment_method='card', transaction_id=txn_id,
             paid_at=timezone.now(),
         )
@@ -432,18 +599,18 @@ def payment_page(request, course_id):
         course.total_enrolled += 1
         course.save(update_fields=['total_enrolled'])
         send_notification(request.user, 'Payment Successful 💳',
-                          f'₹{course.price} paid for "{course.title}"', 'payment')
-        messages.success(request, 'Payment successful! You are now enrolled.')
+                          f'₹{price_to_pay} paid for "{course.title}"', 'payment')
+        messages.success(request, 'Payment successful! You have unlocked the complete course.')
         return redirect('course_detail', slug=course.slug)
     return render(request, 'learning/payment.html', {
         'course': course,
+        'price_to_pay': price_to_pay,
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
     })
 
 
-# ══════════════════════════════════════════
 #  NOTIFICATIONS
-# ══════════════════════════════════════════
+
 @login_required
 def notifications(request):
     notifs = Notification.objects.filter(recipient=request.user)
@@ -460,9 +627,8 @@ def mark_notification_read(request, notif_id):
     return JsonResponse({'status': 'ok'})
 
 
-# ══════════════════════════════════════════
 #  PROFILE
-# ══════════════════════════════════════════
+
 @login_required
 def profile(request):
     profile_obj, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -471,8 +637,8 @@ def profile(request):
         if form.is_valid():
             form.save()
             request.user.first_name = request.POST.get('first_name', request.user.first_name)
-            request.user.last_name  = request.POST.get('last_name', request.user.last_name)
-            request.user.email      = request.POST.get('email', request.user.email)
+            request.user.last_name = request.POST.get('last_name', request.user.last_name)
+            request.user.email = request.POST.get('email', request.user.email)
             request.user.save()
             messages.success(request, 'Profile updated!')
             return redirect('profile')
@@ -486,9 +652,8 @@ def profile(request):
     return render(request, 'learning/profile.html', {'form': form, 'results': results, 'profile_obj': profile_obj})
 
 
-# ══════════════════════════════════════════
 #  MENTOR CHATBOT
-# ══════════════════════════════════════════
+
 @login_required
 def chatbot_page(request):
     messages_qs = ChatMessage.objects.filter(user=request.user).order_by('created_at')
@@ -548,7 +713,6 @@ def chatbot_api(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-
 #  ADMIN — MANAGE USERS
 
 @login_required
@@ -579,7 +743,6 @@ def admin_toggle_user(request, user_id):
     return redirect('admin_users')
 
 
-
 #  LEADERBOARD
 #  ANALYTICS
 
@@ -590,11 +753,11 @@ def analytics(request):
     exam_results = ExamResult.objects.filter(student=user).select_related('exam').order_by('started_at')
 
     total_enrolled = enrollments.count()
-    total_exams    = exam_results.count()
-    avg_score      = round(exam_results.aggregate(a=Avg('percentage'))['a'] or 0, 1)
-    pass_count     = exam_results.filter(status='pass').count()
-    pass_rate      = round((pass_count / total_exams * 100) if total_exams else 0, 1)
-    pass_mark      = 40
+    total_exams = exam_results.count()
+    avg_score = round(exam_results.aggregate(a=Avg('percentage'))['a'] or 0, 1)
+    pass_count = exam_results.filter(status='pass').count()
+    pass_rate = round((pass_count / total_exams * 100) if total_exams else 0, 1)
+    pass_mark = 40
 
     # Score trend data
     score_data = []
@@ -604,8 +767,9 @@ def analytics(request):
     # Type distribution
     from django.db.models import Count as DjCount
     type_counts = exam_results.values('exam__exam_type').annotate(c=DjCount('id'))
-    type_map    = {'module': 'Module', 'final': 'Final', 'practice': 'Practice'}
-    type_data   = [{'label': type_map.get(t['exam__exam_type'], t['exam__exam_type']), 'count': t['c']} for t in type_counts]
+    type_map = {'module': 'Module', 'final': 'Final', 'practice': 'Practice'}
+    type_data = [{'label': type_map.get(t['exam__exam_type'], t['exam__exam_type']), 'count': t['c']} for t in
+                 type_counts]
     if not type_data:
         type_data = [{'label': 'No Data', 'count': 1}]
 
@@ -660,7 +824,6 @@ def analytics(request):
     return render(request, 'learning/analytics.html', context)
 
 
-
 #  CERTIFICATE
 
 @login_required
@@ -676,6 +839,12 @@ def certificate(request, enrollment_id):
             enrollment.completed_at = timezone.now()
             enrollment.status = 'completed'
         enrollment.save()
+
+        # Award 200 XP completion bonus points
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.total_points += 200
+        profile.save()
+        messages.success(request, 'Certificate issued! Earned +200 XP for course completion! 🎓')
     best_result = ExamResult.objects.filter(
         student=request.user, exam__course=enrollment.course, status='pass'
     ).order_by('-percentage').first()
@@ -683,7 +852,6 @@ def certificate(request, enrollment_id):
         'enrollment': enrollment,
         'best_result': best_result,
     })
-
 
 
 #  CREATE COURSE (Instructor)
@@ -713,6 +881,7 @@ def create_course(request):
         form = CourseForm()
     return render(request, 'learning/create_course.html', {'form': form})
 
+
 @login_required
 def edit_course(request, course_id):
     course = get_object_or_404(Course, id=course_id, instructor=request.user)
@@ -731,6 +900,7 @@ def edit_course(request, course_id):
         form = CourseForm(instance=course)
     return render(request, 'learning/edit_course.html', {'form': form, 'course': course})
 
+
 @login_required
 @require_POST
 def delete_course(request, course_id):
@@ -739,7 +909,6 @@ def delete_course(request, course_id):
     course.delete()
     messages.success(request, f'Course "{title}" has been deleted.')
     return redirect('instructor_dashboard')
-
 
 
 #  PASSWORD CHANGE
@@ -765,7 +934,6 @@ def change_password(request):
     return render(request, 'learning/change_password.html', {'form': form})
 
 
-
 #  SEARCH
 
 def search(request):
@@ -780,7 +948,6 @@ def search(request):
             models.Q(tags__icontains=q)
         )
     return render(request, 'learning/search_results.html', {'courses': courses, 'query': q})
-
 
 
 #  ADD EXAM QUESTION (Instructor)
@@ -813,7 +980,6 @@ def add_question(request, exam_id):
     return render(request, 'learning/add_question.html', {'form': form, 'exam': exam})
 
 
-
 #  MANAGE EXAM (Instructor)
 
 @login_required
@@ -824,7 +990,6 @@ def manage_exam(request, exam_id):
         return redirect('dashboard')
     questions = exam.questions.all()
     return render(request, 'learning/manage_exam.html', {'exam': exam, 'questions': questions})
-
 
 
 #  INSTRUCTOR DASHBOARD
@@ -880,10 +1045,10 @@ def instructor_dashboard(request):
     })
 
 
-
 #  COURSE REVIEWS
 
 from .models import CourseReview, DiscussionThread, DiscussionReply
+
 
 @login_required
 def course_reviews(request, slug):
@@ -919,9 +1084,9 @@ def submit_review(request, course_id):
     if not Enrollment.objects.filter(student=request.user, course=course).exists():
         messages.error(request, 'You must be enrolled to review this course.')
         return redirect('course_detail', slug=course.slug)
-    rating  = int(request.POST.get('rating', 5))
+    rating = int(request.POST.get('rating', 5))
     comment = request.POST.get('comment', '').strip()
-    rating  = max(1, min(5, rating))
+    rating = max(1, min(5, rating))
     review, created = CourseReview.objects.update_or_create(
         course=course, student=request.user,
         defaults={'rating': rating, 'comment': comment}
@@ -932,7 +1097,6 @@ def submit_review(request, course_id):
     course.save(update_fields=['rating'])
     messages.success(request, 'Review submitted! Thank you.')
     return redirect('course_reviews', slug=course.slug)
-
 
 
 #  DISCUSSION FORUM
@@ -953,7 +1117,7 @@ def discussion(request, slug):
 @require_POST
 def post_thread(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    title   = request.POST.get('title', '').strip()
+    title = request.POST.get('title', '').strip()
     content = request.POST.get('content', '').strip()
     if title and content:
         DiscussionThread.objects.create(course=course, author=request.user, title=title, content=content)
@@ -964,7 +1128,7 @@ def post_thread(request, course_id):
 @login_required
 @require_POST
 def post_reply(request, thread_id):
-    thread  = get_object_or_404(DiscussionThread, id=thread_id)
+    thread = get_object_or_404(DiscussionThread, id=thread_id)
     content = request.POST.get('content', '').strip()
     if content:
         DiscussionReply.objects.create(thread=thread, author=request.user, content=content)
@@ -978,47 +1142,279 @@ def post_reply(request, thread_id):
     return redirect('discussion', slug=thread.course.slug)
 
 
-
-
-
-
 #  PROGRESS REPORT (JSON export)
 
 @login_required
 def progress_report(request):
-    from django.http import JsonResponse as JR
+    import io
+    from django.http import HttpResponse
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+
     enrollments = Enrollment.objects.filter(student=request.user).select_related('course')
-    results     = ExamResult.objects.filter(student=request.user).select_related('exam')
-    data = {
-        'student': request.user.get_full_name() or request.user.username,
-        'email':   request.user.email,
-        'generated_at': timezone.now().isoformat(),
-        'enrollments': [
-            {
-                'course': e.course.title,
-                'status': e.status,
-                'completion': e.completion_percent,
-                'enrolled_at': e.enrolled_at.isoformat(),
-            } for e in enrollments
+    results = ExamResult.objects.filter(student=request.user).select_related('exam')
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40
+    )
+
+    styles = getSampleStyleSheet()
+
+    # Premium color palette
+    primary_color = colors.HexColor('#1a1a2e')  # Dark blue/navy
+    accent_color = colors.HexColor('#6c63ff')  # Purple accent
+    text_color = colors.HexColor('#374151')  # Charcoal body text
+    muted_color = colors.HexColor('#9ca3af')  # Muted gray
+
+    title_style = ParagraphStyle(
+        'DocTitle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=22,
+        leading=26,
+        textColor=primary_color
+    )
+
+    section_heading = ParagraphStyle(
+        'SectionHeading',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=13,
+        leading=17,
+        textColor=primary_color,
+        spaceAfter=8,
+        spaceBefore=14
+    )
+
+    body_style = ParagraphStyle(
+        'BodyTextCustom',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        leading=14,
+        textColor=text_color
+    )
+
+    meta_label_style = ParagraphStyle(
+        'MetaLabel',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        leading=12,
+        textColor=primary_color
+    )
+
+    meta_val_style = ParagraphStyle(
+        'MetaVal',
+        parent=body_style,
+        fontSize=9,
+        leading=12
+    )
+
+    table_header_style = ParagraphStyle(
+        'TableHeader',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        leading=12,
+        textColor=colors.white
+    )
+
+    table_body_style = ParagraphStyle(
+        'TableBody',
+        parent=body_style,
+        fontSize=9,
+        leading=12
+    )
+
+    table_body_bold_style = ParagraphStyle(
+        'TableBodyBold',
+        parent=table_body_style,
+        fontName='Helvetica-Bold'
+    )
+
+    status_pass_style = ParagraphStyle(
+        'StatusPass',
+        parent=table_body_bold_style,
+        textColor=colors.HexColor('#10b981')
+    )
+
+    status_fail_style = ParagraphStyle(
+        'StatusFail',
+        parent=table_body_bold_style,
+        textColor=colors.HexColor('#ef4444')
+    )
+
+    elements = []
+
+    # Title & Header Table
+    header_data = [
+        [
+            Paragraph("🧠 AdaptLearn", ParagraphStyle('Logo', parent=title_style, fontSize=18, textColor=accent_color)),
+            Paragraph("STUDENT PROGRESS REPORT",
+                      ParagraphStyle('ReportType', parent=title_style, alignment=2, fontSize=14))
+        ]
+    ]
+    header_table = Table(header_data, colWidths=[200, 332])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(header_table)
+
+    # Divider line
+    divider = Table([[""]], colWidths=[532])
+    divider.setStyle(TableStyle([
+        ('LINEBELOW', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    elements.append(divider)
+    elements.append(Spacer(1, 10))
+
+    # Meta information block
+    meta_data = [
+        [
+            Paragraph("Student Name:", meta_label_style),
+            Paragraph(request.user.get_full_name() or request.user.username, meta_val_style),
+            Paragraph("Report Date:", meta_label_style),
+            Paragraph(timezone.now().strftime("%d %B %Y, %H:%M"), meta_val_style)
         ],
-        'exam_results': [
-            {
-                'exam': r.exam.title,
-                'course': r.exam.course.title,
-                'score': r.score,
-                'percentage': r.percentage,
-                'status': r.status,
-                'date': r.submitted_at.isoformat() if r.submitted_at else None,
-            } for r in results
-        ],
-    }
-    response = JR(data)
-    response['Content-Disposition'] = 'attachment; filename="progress_report.json"'
+        [
+            Paragraph("Email Address:", meta_label_style),
+            Paragraph(request.user.email, meta_val_style),
+            Paragraph("Total Points (XP):", meta_label_style),
+            Paragraph(str(getattr(request.user.profile, 'total_points', 0)), meta_val_style)
+        ]
+    ]
+    meta_table = Table(meta_data, colWidths=[90, 176, 90, 176])
+    meta_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f9fafb')),
+        ('PADDING', (0, 0), (-1, -1), 6),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#f3f4f6')),
+    ]))
+    elements.append(meta_table)
+    elements.append(Spacer(1, 12))
+
+    # Section 1: Course Enrollments
+    elements.append(Paragraph("📚 Enrolled Courses", section_heading))
+
+    course_headers = ["Course Title", "Status", "Completion", "Enrolled Date"]
+    course_rows = [[Paragraph(h, table_header_style) for h in course_headers]]
+
+    for e in enrollments:
+        status_text = "Completed" if e.status == 'completed' or e.completion_percent >= 100 else e.get_status_display()
+        status_color = colors.HexColor(
+            '#10b981') if e.status == 'completed' or e.completion_percent >= 100 else colors.HexColor('#3b82f6')
+
+        course_rows.append([
+            Paragraph(e.course.title, table_body_bold_style),
+            Paragraph(status_text, ParagraphStyle('CStatus', parent=table_body_style, fontName='Helvetica-Bold',
+                                                  textColor=status_color)),
+            Paragraph(f"{e.completion_percent}%", table_body_style),
+            Paragraph(e.enrolled_at.strftime("%d %b %Y"), table_body_style)
+        ])
+
+    if not enrollments:
+        course_rows.append([Paragraph("No courses enrolled yet.", table_body_style), "", "", ""])
+
+    course_table = Table(course_rows, colWidths=[240, 100, 92, 100])
+    course_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), primary_color),
+        ('PADDING', (0, 0), (-1, -1), 6),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+    ]))
+    elements.append(course_table)
+    elements.append(Spacer(1, 15))
+
+    # Section 2: Exam Performance
+    elements.append(Paragraph("🏆 Exam Results", section_heading))
+
+    exam_headers = ["Exam Name", "Course", "Score", "Percentage", "Status", "Date"]
+    exam_rows = [[Paragraph(h, table_header_style) for h in exam_headers]]
+
+    for r in results:
+        status_style = status_pass_style if r.status == 'pass' else status_fail_style
+
+        exam_rows.append([
+            Paragraph(r.exam.title, table_body_bold_style),
+            Paragraph(r.exam.course.title, table_body_style),
+            Paragraph(f"{r.score}/{r.total_marks}", table_body_style),
+            Paragraph(f"{r.percentage}%", table_body_bold_style),
+            Paragraph(r.status.upper(), status_style),
+            Paragraph(r.submitted_at.strftime("%d %b %Y") if r.submitted_at else "N/A", table_body_style)
+        ])
+
+    if not results:
+        exam_rows.append([Paragraph("No exams taken yet.", table_body_style), "", "", "", "", ""])
+
+    exam_table = Table(exam_rows, colWidths=[120, 120, 70, 72, 70, 80])
+    exam_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), primary_color),
+        ('PADDING', (0, 0), (-1, -1), 6),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+    ]))
+    elements.append(exam_table)
+
+    # Footer Notice
+    elements.append(Spacer(1, 30))
+    elements.append(divider)
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph(
+        "This progress report is generated dynamically by the AdaptLearn platform. Thank you for learning with us!",
+        ParagraphStyle('FooterNotice', parent=body_style, alignment=1, fontSize=8, textColor=muted_color)))
+
+    doc.build(elements)
+
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="progress_report_{request.user.username}.pdf"'
+    response.write(pdf)
     return response
+
+
+@login_required
+@require_POST
+def restart_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    enrollment = get_object_or_404(Enrollment, student=request.user, course=course)
+
+    # Delete student progress for this course's materials
+    StudentProgress.objects.filter(
+        student=request.user,
+        material__module__course=course
+    ).delete()
+
+    # Reset enrollment progress
+    enrollment.completion_percent = 0.0
+    enrollment.status = 'active'
+    enrollment.completed_at = None
+    enrollment.certificate_issued = False
+    enrollment.save()
+
+    messages.success(request, f'Progress for "{course.title}" has been reset. You can now start fresh!')
+    return redirect('course_detail', slug=course.slug)
 
 
 def error_404(request, exception=None):
     return render(request, '404.html', status=404)
+
 
 def error_500(request):
     return render(request, '500.html', status=500)
@@ -1034,36 +1430,501 @@ def leaderboard(request):
 
 
 def password_reset_custom(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
+        if not email:
+            messages.error(request, 'Please enter your registered email address.')
+            return render(request, 'registration/password_reset_form.html')
+
+        from django.contrib.auth.models import User
+        # Filter users with matching email (case-insensitive)
+        users = User.objects.filter(email__iexact=email)
+        if not users.exists():
+            messages.error(request, 'No user account found with that email address.')
+            return render(request, 'registration/password_reset_form.html')
+
+        import random
+        import time
+        from django.core.mail import send_mail
+        from django.conf import settings
+
+        otp = f"{random.randint(100000, 999999)}"
+
+        request.session['reset_otp'] = otp
+        request.session['reset_email'] = email
+        request.session['reset_otp_expiry'] = time.time() + 600  # 10 minutes
+
+        # Print the OTP to terminal console for easy developer validation
+        print(
+            f"\n========================================\n[OTP DEBUG] Generated OTP '{otp}' for email '{email}'\n========================================\n")
+
+        subject = 'Reset Your AdaptLearn Password'
+        message = (
+            "Hello,\n\n"
+            "You requested a password reset for your AdaptLearn account.\n\n"
+            f"Your 6-digit OTP verification code is: {otp}\n\n"
+            "This code is valid for 10 minutes. If you did not request this, please ignore this email.\n\n"
+            "Thanks,\n"
+            "The AdaptLearn Team"
+        )
+
+        try:
+            send_mail(
+                subject,
+                message,
+                getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@adaptlearn.com'),
+                [email],
+                fail_silently=False,
+            )
+            messages.success(request, 'A verification code has been sent to your email.')
+            return redirect('password_reset_verify')
+        except Exception as e:
+            messages.error(request, f'Failed to send email: {str(e)}')
+            return render(request, 'registration/password_reset_form.html')
+
+    return render(request, 'registration/password_reset_form.html')
+
+
+def password_reset_verify(request):
+    reset_email = request.session.get('reset_email')
+    reset_otp = request.session.get('reset_otp')
+    reset_otp_expiry = request.session.get('reset_otp_expiry')
+
+    # If there is no reset session active, redirect to request page
+    if not reset_email or not reset_otp or not reset_otp_expiry:
+        messages.error(request, 'Session expired or invalid. Please request a new OTP.')
+        return redirect('password_reset')
+
+    if request.method == 'POST':
+        otp_input = request.POST.get('otp', '').strip()
         new_password = request.POST.get('new_password', '')
         confirm_password = request.POST.get('confirm_password', '')
 
-        if not username or not email or not new_password or not confirm_password:
-            messages.error(request, 'All fields are required.')
-            return render(request, 'registration/password_reset_form.html')
+        import time
+        current_time = time.time()
 
-        try:
-            user = User.objects.get(username=username, email=email)
-        except User.DoesNotExist:
-            messages.error(request, 'No user found with the provided username and email.')
-            return render(request, 'registration/password_reset_form.html')
+        if current_time > reset_otp_expiry:
+            messages.error(request, 'The OTP has expired. Please request a new one.')
+            return redirect('password_reset')
+
+        if otp_input != reset_otp:
+            messages.error(request, 'Invalid verification code. Please try again.')
+            return render(request, 'registration/password_reset_verify.html')
+
+        if not new_password or not confirm_password:
+            messages.error(request, 'Please fill in both password fields.')
+            return render(request, 'registration/password_reset_verify.html')
 
         if new_password != confirm_password:
             messages.error(request, 'Passwords do not match.')
-            return render(request, 'registration/password_reset_form.html')
+            return render(request, 'registration/password_reset_verify.html')
 
-        if len(new_password) < 6:
-            messages.error(request, 'Password must be at least 6 characters long.')
-            return render(request, 'registration/password_reset_form.html')
+        if len(new_password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return render(request, 'registration/password_reset_verify.html')
 
-        user.set_password(new_password)
-        user.save()
+        from django.contrib.auth.models import User
+        users = User.objects.filter(email__iexact=reset_email)
+        if not users.exists():
+            messages.error(request, 'No user found with the registered email. Please contact support.')
+            return redirect('password_reset')
+
+        # Update password for all users associated with this email
+        for user in users:
+            user.set_password(new_password)
+            user.save()
+
+        # Clear reset session
+        request.session.pop('reset_otp', None)
+        request.session.pop('reset_email', None)
+        request.session.pop('reset_otp_expiry', None)
+
         messages.success(request, 'Password reset successfully! You can now sign in with your new password.')
         return redirect('user_login')
 
-    return render(request, 'registration/password_reset_form.html')
+    return render(request, 'registration/password_reset_verify.html')
+
+
+# GOOGLE OAUTH VIEWS
+
+def google_login(request):
+    import os
+    import urllib.parse
+    import uuid
+
+    role = request.GET.get('role', 'student')
+    if role not in ['student', 'instructor']:
+        role = 'student'
+    request.session['google_auth_role'] = role
+
+    client_id = os.getenv('GOOGLE_CLIENT_ID')
+    client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+
+    # If not configured, redirect to the simulator
+    if not client_id or not client_secret:
+        return redirect('google_simulator')
+
+    redirect_uri = request.build_absolute_uri('/google/callback/')
+    state = str(uuid.uuid4())
+    request.session['google_auth_state'] = state
+
+    params = {
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': 'openid email profile',
+        'state': state,
+        'prompt': 'select_account',
+    }
+    url = 'https://accounts.google.com/o/oauth2/v2/auth?' + urllib.parse.urlencode(params)
+    return redirect(url)
+
+
+def google_callback(request):
+    import os
+    import urllib.parse
+    import urllib.request
+    import json
+
+    code = request.GET.get('code')
+    state = request.GET.get('state')
+    session_state = request.session.pop('google_auth_state', None)
+
+    if not code:
+        messages.error(request, 'Google authentication failed: no code returned.')
+        return redirect('user_login')
+
+    if state != session_state:
+        messages.error(request, 'Google authentication failed: state mismatch.')
+        return redirect('user_login')
+
+    client_id = os.getenv('GOOGLE_CLIENT_ID')
+    client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+    redirect_uri = request.build_absolute_uri('/google/callback/')
+
+    try:
+        # 1. Exchange code for access token
+        token_url = 'https://oauth2.googleapis.com/token'
+        token_data = urllib.parse.urlencode({
+            'code': code,
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'redirect_uri': redirect_uri,
+            'grant_type': 'authorization_code'
+        }).encode('utf-8')
+
+        token_req = urllib.request.Request(token_url, data=token_data, headers={
+            'Content-Type': 'application/x-www-form-urlencoded'
+        })
+
+        with urllib.request.urlopen(token_req) as response:
+            token_response = json.loads(response.read().decode('utf-8'))
+
+        access_token = token_response.get('access_token')
+        if not access_token:
+            messages.error(request, 'Failed to obtain access token from Google.')
+            return redirect('user_login')
+
+        # 2. Get user profile info
+        userinfo_url = 'https://www.googleapis.com/oauth2/v3/userinfo'
+        userinfo_req = urllib.request.Request(userinfo_url, headers={
+            'Authorization': f'Bearer {access_token}'
+        })
+
+        with urllib.request.urlopen(userinfo_req) as response:
+            userinfo = json.loads(response.read().decode('utf-8'))
+
+        email = userinfo.get('email')
+        given_name = userinfo.get('given_name', '')
+        family_name = userinfo.get('family_name', '')
+
+        if not email:
+            messages.error(request, 'Failed to retrieve email address from Google.')
+            return redirect('user_login')
+
+        # 3. Authenticate or create user
+        role = request.session.pop('google_auth_role', 'student')
+
+        username = email.split('@')[0]
+        base_username = username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            existing_user = User.objects.filter(username=username).first()
+            if existing_user and existing_user.email == email:
+                break
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'username': username,
+                'first_name': given_name or username.capitalize(),
+                'last_name': family_name or '',
+            }
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        profile, p_created = UserProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'role': role,
+                'bio': 'Registered via Google Login.',
+            }
+        )
+
+        login(request, user)
+        if created:
+            send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
+                              'system')
+            messages.success(request, f'Successfully registered via Google! Role: {profile.get_role_display()}')
+        else:
+            messages.success(request, f'Welcome back, {user.first_name or user.username}! Logged in via Google.')
+
+        if profile.role == 'admin':
+            return redirect('admin_dashboard')
+        elif profile.role == 'instructor':
+            return redirect('instructor_dashboard')
+        else:
+            return redirect('dashboard')
+
+    except Exception as e:
+        messages.error(request, f'Authentication error: {str(e)}')
+        return redirect('user_login')
+
+
+@csrf_exempt
+def google_callback_js(request):
+    import json
+    import urllib.request
+    import urllib.parse
+    import os
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)
+
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            credential = data.get('credential')
+            role = data.get('role', 'student')
+        else:
+            credential = request.POST.get('credential')
+            role = request.POST.get('role', 'student')
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Payload parsing error: {str(e)}'}, status=400)
+
+    if not credential:
+        return JsonResponse({'success': False, 'message': 'Missing credential (ID Token).'}, status=400)
+
+    # Verify ID Token with Google's tokeninfo API
+    try:
+        verify_url = 'https://oauth2.googleapis.com/tokeninfo?' + urllib.parse.urlencode({'id_token': credential})
+        req = urllib.request.Request(verify_url)
+        with urllib.request.urlopen(req) as response:
+            user_data = json.loads(response.read().decode('utf-8'))
+
+        # Check token validity (aud should match GOOGLE_CLIENT_ID)
+        client_id = os.getenv('GOOGLE_CLIENT_ID')
+        if not client_id:
+            return JsonResponse({'success': False, 'message': 'Google OAuth not configured on server.'}, status=500)
+
+        if user_data.get('aud') != client_id:
+            return JsonResponse({'success': False, 'message': 'Audience verification failed.'}, status=400)
+
+        email = user_data.get('email')
+        given_name = user_data.get('given_name', '')
+        family_name = user_data.get('family_name', '')
+
+        if not email:
+            return JsonResponse({'success': False, 'message': 'Failed to retrieve verified email from token.'}, status=400)
+
+        # Get/create user and login
+        username = email.split('@')[0]
+        base_username = username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            existing_user = User.objects.filter(username=username).first()
+            if existing_user and existing_user.email == email:
+                break
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'username': username,
+                'first_name': given_name or username.capitalize(),
+                'last_name': family_name or '',
+            }
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        profile, p_created = UserProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'role': role,
+                'bio': 'Registered via Google One Tap/Sign-In.',
+            }
+        )
+
+        login(request, user)
+        if created:
+            send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
+                              'system')
+            messages.success(request, f'Successfully registered via Google! Role: {profile.get_role_display()}')
+        else:
+            messages.success(request, f'Welcome back, {user.first_name or user.username}! Logged in via Google.')
+
+        if profile.role == 'admin':
+            redirect_url = '/admin-dashboard/'
+        elif profile.role == 'instructor':
+            redirect_url = '/instructor/'
+        else:
+            redirect_url = '/dashboard/'
+
+        return JsonResponse({
+            'success': True,
+            'redirect_url': redirect_url
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Verification failed: {str(e)}'}, status=400)
+
+
+def google_simulator(request):
+    role = request.session.get('google_auth_role', 'student')
+    if request.method == 'POST':
+        # Accept JSON or POST form data
+        if request.content_type == 'application/json':
+            try:
+                import json
+                data = json.loads(request.body)
+                email = data.get('email', '').strip()
+                first_name = data.get('first_name', '').strip()
+                last_name = data.get('last_name', '').strip()
+                role = data.get('role', role)
+            except Exception:
+                email, first_name, last_name = '', '', ''
+        else:
+            email = request.POST.get('email', '').strip()
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            role = request.POST.get('role', role)
+
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json' or request.POST.get('ajax') == 'true'
+
+        if not email:
+            if is_ajax:
+                return JsonResponse({'success': False, 'message': 'Email is required.'})
+            messages.error(request, 'Email is required.')
+            return render(request, 'registration/google_simulator.html', {'role': role})
+
+        # Clean user registration/login
+        username = email.split('@')[0]
+        base_username = username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            existing_user = User.objects.filter(username=username).first()
+            if existing_user and existing_user.email == email:
+                break
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'username': username,
+                'first_name': first_name or username.capitalize(),
+                'last_name': last_name or '',
+            }
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        profile, p_created = UserProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'role': role,
+                'bio': 'Signed up via Google Login Simulator.',
+            }
+        )
+
+        login(request, user)
+        if created:
+            send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
+                              'system')
+            messages.success(request, f'Successfully registered via Google! Role: {profile.get_role_display()}')
+        else:
+            messages.success(request, f'Welcome back, {user.first_name or user.username}! Logged in via Google.')
+
+        if profile.role == 'admin':
+            redirect_url = '/admin-dashboard/'
+        elif profile.role == 'instructor':
+            redirect_url = '/instructor/'
+        else:
+            redirect_url = '/dashboard/'
+
+        if is_ajax:
+            return JsonResponse({'success': True, 'redirect_url': redirect_url})
+        return redirect(redirect_url)
+
+    mock_users = [
+        {'email': 'sarah.student@gmail.com', 'first_name': 'Sarah', 'last_name': 'Connor', 'role': 'student'},
+        {'email': 'alex.instructor@gmail.com', 'first_name': 'Alex', 'last_name': 'Mercer', 'role': 'instructor'},
+    ]
+    return render(request, 'registration/google_simulator.html', {
+        'role': role,
+        'mock_users': mock_users,
+    })
+
+
+# ── TIME TRACKING ──────────────────────────────────────────────────────────────
+
+@login_required
+@require_POST
+def record_time_spent(request, material_id):
+    """
+    Called by the JS timer on module_detail every 30 s.
+    Body: { "seconds": <int> }
+    Increments time_spent_mins on StudentProgress (rounded up to whole minutes).
+    """
+    try:
+        data = json.loads(request.body)
+        seconds = int(data.get('seconds', 0))
+    except (ValueError, KeyError):
+        return JsonResponse({'error': 'Invalid payload'}, status=400)
+
+    if seconds <= 0:
+        return JsonResponse({'status': 'noop'})
+
+    material = get_object_or_404(LearningMaterial, id=material_id)
+    enrollment = Enrollment.objects.filter(
+        student=request.user, course=material.module.course
+    ).first()
+
+    if not enrollment:
+        return JsonResponse({'error': 'Not enrolled'}, status=403)
+
+    progress, _ = StudentProgress.objects.get_or_create(
+        student=request.user,
+        material=material,
+        defaults={'enrollment': enrollment},
+    )
+
+    # Convert seconds → whole minutes (ceiling), add to existing total
+    import math
+    added_mins = math.ceil(seconds / 60)
+    StudentProgress.objects.filter(pk=progress.pk).update(
+        time_spent_mins=models.F('time_spent_mins') + added_mins
+    )
+
+    return JsonResponse({'status': 'ok', 'added_mins': added_mins})

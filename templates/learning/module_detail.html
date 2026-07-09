@@ -9,44 +9,73 @@
 <div class="row g-4">
   <div class="col-xl-8">
     {% for mat in materials %}
-    <div class="glass p-4 mb-3" style="border-radius:20px" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
-      <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-        <div class="d-flex align-items-center gap-3">
-          <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-            {% if mat.material_type == 'video' %}background:rgba(255,101,132,.15){% elif mat.material_type == 'pdf' %}background:rgba(0,212,255,.15){% else %}background:rgba(108,99,255,.15){% endif %}">
-            <i class="fas {% if mat.material_type == 'video' %}fa-play{% elif mat.material_type == 'pdf' %}fa-file-pdf{% elif mat.material_type == 'quiz' %}fa-question{% else %}fa-file-alt{% endif %}"
-               style="{% if mat.material_type == 'video' %}color:var(--accent3){% elif mat.material_type == 'pdf' %}color:var(--accent2){% else %}color:var(--accent){% endif %}"></i>
+      {% if not module.course.is_free or has_paid or mat.id == first_material_id %}
+      <div class="glass p-4 mb-3" style="border-radius:20px" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0" data-material-id="{{ mat.id }}">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+              {% if mat.material_type == 'video' %}background:rgba(255,101,132,.15){% elif mat.material_type == 'pdf' %}background:rgba(0,212,255,.15){% else %}background:rgba(108,99,255,.15){% endif %}">
+              <i class="fas {% if mat.material_type == 'video' %}fa-play{% elif mat.material_type == 'pdf' %}fa-file-pdf{% elif mat.material_type == 'quiz' %}fa-question{% else %}fa-file-alt{% endif %}"
+                 style="{% if mat.material_type == 'video' %}color:var(--accent3){% elif mat.material_type == 'pdf' %}color:var(--accent2){% else %}color:var(--accent){% endif %}"></i>
+            </div>
+            <div>
+              <h3 style="font-weight:700;font-size:1rem;margin:0">{{ mat.title }}</h3>
+              <span style="font-size:.75rem;color:var(--muted)">{{ mat.get_material_type_display }} · {{ mat.duration_mins }} min</span>
+            </div>
           </div>
-          <div>
-            <h3 style="font-weight:700;font-size:1rem;margin:0">{{ mat.title }}</h3>
-            <span style="font-size:.75rem;color:var(--muted)">{{ mat.get_material_type_display }} · {{ mat.duration_mins }} min</span>
-          </div>
+          {% if mat.id in completed_ids %}
+          <span style="color:var(--green);font-size:.8rem;flex-shrink:0"><i class="fas fa-check-circle me-1"></i>Done</span>
+          {% else %}
+          <form method="post" action="{% url 'mark_material_complete' material_id=mat.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm" style="background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.3);border-radius:8px;font-size:.78rem">
+              Mark Complete
+            </button>
+          </form>
+          {% endif %}
         </div>
-        {% if mat.id in completed_ids %}
-        <span style="color:var(--green);font-size:.8rem;flex-shrink:0"><i class="fas fa-check-circle me-1"></i>Done</span>
-        {% else %}
-        <form method="post" action="{% url 'mark_material_complete' material_id=mat.id %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-sm" style="background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.3);border-radius:8px;font-size:.78rem">
-            Mark Complete
-          </button>
-        </form>
+        {% if mat.video_url %}
+        <div style="border-radius:12px;overflow:hidden;margin-bottom:.8rem">
+          <iframe src="{{ mat.video_url }}" style="width:100%;height:300px;border:none" allowfullscreen></iframe>
+        </div>
+        {% endif %}
+        {% if mat.content %}
+        <div style="font-size:.9rem;color:var(--muted);line-height:1.7">{{ mat.content|safe }}</div>
+        {% endif %}
+        {% if mat.file %}
+        <a href="{{ mat.file.url }}" class="btn-outline-glow btn btn-sm mt-2" download>
+          <i class="fas fa-download me-2"></i>Download File
+        </a>
         {% endif %}
       </div>
-      {% if mat.video_url %}
-      <div style="border-radius:12px;overflow:hidden;margin-bottom:.8rem">
-        <iframe src="{{ mat.video_url }}" style="width:100%;height:300px;border:none" allowfullscreen></iframe>
+      {% else %}
+      <div class="glass p-4 mb-3 text-center" style="border-radius:20px; border: 1px dashed rgba(255, 101, 132, 0.4); background: rgba(255, 101, 132, 0.02);" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(255,101,132,.15)">
+              <i class="fas fa-lock" style="color:var(--accent3)"></i>
+            </div>
+            <div style="text-align: left;">
+              <h3 style="font-weight:700;font-size:1rem;margin:0">{{ mat.title }}</h3>
+              <span style="font-size:.75rem;color:var(--muted)">{{ mat.get_material_type_display }} · {{ mat.duration_mins }} min</span>
+            </div>
+          </div>
+          <a href="{% url 'payment_page' course_id=module.course.id %}" class="btn btn-sm" style="background:var(--accent3);color:#fff;border-radius:8px;font-size:.78rem;font-weight:600; border: none; padding: .4rem .8rem; text-decoration: none;">
+            <i class="fas fa-unlock me-1"></i> Unlock
+          </a>
+        </div>
+        <div style="padding: 1.5rem 0;">
+          <i class="fas fa-lock fa-2x mb-3" style="color: var(--accent3); opacity: 0.8;"></i>
+          <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">This lesson is locked</h4>
+          <p style="font-size: 0.85rem; color: var(--muted); max-width: 400px; margin: 0 auto 1.2rem;">
+            You are currently learning on a free preview. To continue to this lesson and unlock the complete course, please upgrade.
+          </p>
+          <a href="{% url 'payment_page' course_id=module.course.id %}" class="btn-primary-glow btn btn-sm" style="background: linear-gradient(135deg, var(--accent3), #ff6b35); box-shadow: 0 4px 15px rgba(255, 101, 132, 0.3); border: none; padding: .5rem 1.2rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; color: #fff; text-decoration: none; display: inline-block;">
+            Upgrade Course (₹{{ price_to_pay }})
+          </a>
+        </div>
       </div>
       {% endif %}
-      {% if mat.content %}
-      <div style="font-size:.9rem;color:var(--muted);line-height:1.7">{{ mat.content|safe }}</div>
-      {% endif %}
-      {% if mat.file %}
-      <a href="{{ mat.file.url }}" class="btn-outline-glow btn btn-sm mt-2" download>
-        <i class="fas fa-download me-2"></i>Download File
-      </a>
-      {% endif %}
-    </div>
     {% empty %}
     <div class="glass p-4 text-center" style="color:var(--muted)"><p>No materials in this module yet.</p></div>
     {% endfor %}
@@ -70,4 +99,46 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Per-material time tracker ──────────────────────────────────────────────
+(function () {
+  const FLUSH_EVERY = 30;
+  const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+
+  document.querySelectorAll('[data-material-id]').forEach(function (el) {
+    const materialId = el.dataset.materialId;
+    let pending = 0;
+
+    const interval = setInterval(function () {
+      pending += FLUSH_EVERY;
+      flush(materialId, pending, function () { pending = 0; });
+    }, FLUSH_EVERY * 1000);
+
+    window.addEventListener('beforeunload', function () {
+      if (pending > 0) {
+        navigator.sendBeacon(
+          '/materials/' + materialId + '/time/',
+          new Blob([JSON.stringify({ seconds: pending })], { type: 'application/json' })
+        );
+      }
+      clearInterval(interval);
+    });
+  });
+
+  function flush(materialId, seconds, onDone) {
+    if (seconds <= 0) return;
+    fetch('/materials/' + materialId + '/time/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+      body: JSON.stringify({ seconds: seconds }),
+      keepalive: true,
+    })
+    .then(function (r) { if (r.ok && onDone) onDone(); })
+    .catch(function () {});
+  }
+})();
+</script>
 {% endblock %}
