@@ -1,11 +1,10 @@
-services:
-  # PostgreSQL Database Service
-  - type: db
-    name: adaptive-learning-db
+databases:
+  - name: adaptive-learning-db
     databaseName: adaptive_learning
     user: adapt_user
     plan: free
 
+services:
   # Django Web Service
   - type: web
     name: adaptive-learning-platform
