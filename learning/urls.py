@@ -41,6 +41,8 @@ urlpatterns = [
 
     # Payment
     path('payment/<int:course_id>/', views.payment_page, name='payment_page'),
+    path('payment/<int:course_id>/success/', views.payment_success, name='payment_success'),
+    path('payment/<int:course_id>/cancel/', views.payment_cancel, name='payment_cancel'),
 
     # Certificate
     path('certificate/<int:enrollment_id>/', views.certificate, name='certificate'),

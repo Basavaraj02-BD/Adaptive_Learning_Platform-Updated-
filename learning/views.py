@@ -1,6 +1,7 @@
 import json
 import random
 from datetime import timedelta
+import stripe
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -14,6 +15,7 @@ from django.db.models import Avg, Count, Sum
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.urls import reverse
 
 from .models import (
     UserProfile, Course, Module, LearningMaterial,
@@ -587,26 +589,91 @@ def payment_page(request, course_id):
     price_to_pay = course.price if (course.price and course.price > 0) else 299.00
 
     if request.method == 'POST':
-        # Simulate payment success (integrate Stripe/Razorpay in production)
-        txn_id = f'TXN-{request.user.id}-{course.id}-{timezone.now().timestamp():.0f}'
-        payment = Payment.objects.create(
-            student=request.user, course=course,
-            amount=price_to_pay, status='completed',
-            payment_method='card', transaction_id=txn_id,
-            paid_at=timezone.now(),
-        )
-        Enrollment.objects.get_or_create(student=request.user, course=course)
-        course.total_enrolled += 1
-        course.save(update_fields=['total_enrolled'])
-        send_notification(request.user, 'Payment Successful 💳',
-                          f'₹{price_to_pay} paid for "{course.title}"', 'payment')
-        messages.success(request, 'Payment successful! You have unlocked the complete course.')
-        return redirect('course_detail', slug=course.slug)
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        
+        success_url = request.build_absolute_uri(reverse('payment_success', args=[course.id])) + "?session_id={CHECKOUT_SESSION_ID}"
+        cancel_url = request.build_absolute_uri(reverse('payment_cancel', args=[course.id]))
+
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[
+                    {
+                        'price_data': {
+                            'currency': 'inr',
+                            'product_data': {
+                                'name': course.title,
+                                'description': course.description[:250],
+                            },
+                            'unit_amount': int(price_to_pay * 100), # Amount in paise (1 INR = 100 paise)
+                        },
+                        'quantity': 1,
+                    }
+                ],
+                mode='payment',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={
+                    'course_id': course.id,
+                    'student_id': request.user.id
+                }
+            )
+            return redirect(checkout_session.url, code=303)
+        except Exception as e:
+            messages.error(request, f"Error initializing Stripe Checkout: {str(e)}")
+            return redirect('payment_page', course_id=course.id)
+
     return render(request, 'learning/payment.html', {
         'course': course,
         'price_to_pay': price_to_pay,
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
     })
+
+
+@login_required
+def payment_success(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    session_id = request.GET.get('session_id')
+    if not session_id:
+        messages.error(request, "Invalid payment session.")
+        return redirect('payment_page', course_id=course.id)
+
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        if session.payment_status == 'paid':
+            txn_id = session.payment_intent or f'STRIPE-{session_id}'
+            
+            payment_exists = Payment.objects.filter(transaction_id=txn_id).exists()
+            if not payment_exists:
+                payment = Payment.objects.create(
+                    student=request.user, course=course,
+                    amount=course.price if (course.price and course.price > 0) else 299.00,
+                    status='completed',
+                    payment_method='card', transaction_id=txn_id,
+                    paid_at=timezone.now(),
+                )
+                Enrollment.objects.get_or_create(student=request.user, course=course)
+                course.total_enrolled += 1
+                course.save(update_fields=['total_enrolled'])
+                send_notification(request.user, 'Payment Successful 💳',
+                                  f'₹{payment.amount} paid for "{course.title}"', 'payment')
+            
+            messages.success(request, 'Payment successful! You have unlocked the complete course.')
+            return redirect('course_detail', slug=course.slug)
+        else:
+            messages.error(request, "Payment has not been completed.")
+            return redirect('payment_page', course_id=course.id)
+    except Exception as e:
+        messages.error(request, f"Error verifying payment: {str(e)}")
+        return redirect('payment_page', course_id=course.id)
+
+
+@login_required
+def payment_cancel(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    messages.warning(request, "Payment was cancelled. You can try again below.")
+    return redirect('payment_page', course_id=course.id)
 
 
 #  NOTIFICATIONS
