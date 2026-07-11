@@ -28,8 +28,9 @@ class Command(BaseCommand):
         }
 
         for title in course_descriptions.keys():
+            course_slug = slugify(title)
             course, created = Course.objects.get_or_create(
-                slug=slugify(title),
+                slug=course_slug,
                 defaults={
                     "title": title,
                     "description": course_descriptions[title],
@@ -39,8 +40,12 @@ class Command(BaseCommand):
                     "is_free": True,
                     "price": 0,
                     "duration_hrs": 10,
+                    "thumbnail": f"course_thumbnails/{course_slug}.png",
                 }
             )
+            if not created and not course.thumbnail:
+                course.thumbnail = f"course_thumbnails/{course_slug}.png"
+                course.save(update_fields=["thumbnail"])
 
             module, _ = Module.objects.get_or_create(course=course, title="Introduction")
             exam, _ = Exam.objects.get_or_create(course=course, title=f"{title} Exam")
