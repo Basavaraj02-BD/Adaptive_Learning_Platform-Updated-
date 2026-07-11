@@ -1,0 +1,26 @@
+services:
+  # PostgreSQL Database Service
+  - type: db
+    name: adaptive-learning-db
+    databaseName: adaptive_learning
+    user: adapt_user
+    plan: free
+
+  # Django Web Service
+  - type: web
+    name: adaptive-learning-platform
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn adaptive_learning.wsgi:application"
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: adaptive-learning-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
