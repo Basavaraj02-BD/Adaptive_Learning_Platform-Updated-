@@ -78,8 +78,8 @@
   <!-- Sidebar: Enroll -->
   <div class="col-xl-4">
     <div class="glass p-4 sticky-top" style="top:84px" data-aos="fade-left">
-      <div style="height:180px;background:linear-gradient(135deg,rgba(108,99,255,.4),rgba(0,212,255,.3));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1.2rem">
-        {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">{% else %}📖{% endif %}
+      <div style="height:180px;background:linear-gradient(135deg,rgba(108,99,255,.4),rgba(0,212,255,.3));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:4rem;margin-bottom:1.2rem;position:relative;overflow:hidden">
+        {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">{% else %}📖{% endif %}
       </div>
       <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-bottom:.3rem">
         {% if course.is_free %}<span style="color:var(--green)">Free</span>{% else %}₹{{ course.price }}{% endif %}
