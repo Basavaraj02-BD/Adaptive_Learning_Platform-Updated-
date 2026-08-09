@@ -433,7 +433,7 @@
 
       <!-- Name row -->
       <div class="row g-3 mb-3">
-        <div class="col-6">
+        <div class="col-12 col-sm-6">
           <label class="form-label">First Name</label>
           <div class="input-group-icon">
             <i class="fas fa-user icon"></i>
@@ -441,7 +441,7 @@
           </div>
           {% if form.first_name.errors %}<div class="error-text">{{ form.first_name.errors|join:", " }}</div>{% endif %}
         </div>
-        <div class="col-6">
+        <div class="col-12 col-sm-6">
           <label class="form-label">Last Name</label>
           <div class="input-group-icon">
             <i class="fas fa-user icon"></i>
@@ -478,7 +478,7 @@
       </div>
 
       <div class="row g-3 mb-3">
-        <div class="col-6">
+        <div class="col-12 col-sm-6">
           <label class="form-label">Password</label>
           <div class="input-group-icon position-relative">
             <i class="fas fa-lock icon"></i>
@@ -490,7 +490,7 @@
           <div class="password-strength"><div class="bar" id="strengthBar"></div></div>
           {% if form.password1.errors %}<div class="error-text">{{ form.password1.errors|join:", " }}</div>{% endif %}
         </div>
-        <div class="col-6">
+        <div class="col-12 col-sm-6">
           <label class="form-label">Confirm Password</label>
           <div class="input-group-icon position-relative">
             <i class="fas fa-lock icon"></i>

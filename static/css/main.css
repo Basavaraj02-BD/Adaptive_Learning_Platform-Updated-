@@ -203,6 +203,7 @@ h5 {
 }
 
 .input-icon-wrap input {
+  width: 100%;
   padding-left: 2.8rem !important;
 }
 
@@ -1117,23 +1118,103 @@ pre code {
   font-size: .9rem;
 }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 576px) {
-  .stat-number {
-    font-size: 1.8rem;
-  }
+/* ── RESPONSIVE & MOBILE ACCESSIBILITY ── */
+img, svg, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
 
-  .hide-xs {
-    display: none !important;
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius);
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 5px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: rgba(108, 99, 255, 0.4);
+  border-radius: 3px;
+}
+
+/* Touch-friendly interactive targets on mobile */
+@media (max-width: 767px) {
+  .btn, .btn-glow, .btn-primary-glow, .btn-outline-glow, .btn-cyan, .btn-gold, .glass-input {
+    min-height: 44px;
   }
 }
 
-@media (max-width: 768px) {
+/* ── RESPONSIVE BREAKPOINT TIERS ── */
+
+/* Laptop (992px - 1199px) */
+@media (max-width: 1199px) {
+  .hero-title {
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+  }
+}
+
+/* Tablet (768px - 991px) */
+@media (max-width: 991px) {
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 1050;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main-content {
+    margin-left: 0 !important;
+    padding: 1.25rem;
+  }
+  .chatbot-fab {
+    width: 52px;
+    height: 52px;
+    bottom: 20px;
+    right: 20px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Mobile (480px - 767px) */
+@media (max-width: 767px) {
+  .stat-number {
+    font-size: 1.8rem;
+  }
   .hide-sm {
     display: none !important;
   }
+  .main-content {
+    padding: 1rem;
+  }
+  .stat-card {
+    padding: 1.1rem;
+  }
+  .toast-container-custom {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
 
-  .glass-table th:not(:first-child):not(:last-child) {
-    display: none;
+/* Small Mobile (< 480px) */
+@media (max-width: 479px) {
+  .hide-xs {
+    display: none !important;
+  }
+  .main-content {
+    padding: 0.75rem;
+  }
+  .section-title {
+    font-size: 1.1rem;
+  }
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  .btn-primary-glow, .btn-outline-glow, .btn-cyan, .btn-gold, .btn-glow {
+    padding: 0.55rem 1.2rem;
+    font-size: 0.88rem;
   }
 }

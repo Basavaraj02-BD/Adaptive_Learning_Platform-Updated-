@@ -75,6 +75,15 @@
   }
   .q-nav-dot.answered { background: rgba(0,230,118,.15); border-color: var(--green); color: var(--green); }
   .q-nav-dot.current  { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 1199px) {
+    .exam-nav-card { position: static !important; }
+  }
+  @media (max-width: 576px) {
+    .timer-box { font-size: 1.1rem; padding: 0.5rem 0.9rem; }
+    .question-card { padding: 1.1rem; }
+    .option-label { padding: 0.85rem; font-size: 0.88rem; }
+  }
 </style>
 {% endblock %}
 
@@ -157,7 +166,7 @@
 
     <!-- Question Navigator -->
     <div class="col-xl-3">
-      <div class="glass p-3 sticky-top" style="top:84px;border-radius:18px">
+      <div class="glass p-3 sticky-top exam-nav-card" style="top:84px;border-radius:18px">
         <h3 style="font-size:.9rem;font-weight:700;margin-bottom:.8rem">Question Navigator</h3>
         <div class="d-flex flex-wrap gap-2 mb-3" id="qnavGrid">
           {% for q in questions %}

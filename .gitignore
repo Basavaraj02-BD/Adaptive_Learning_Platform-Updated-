@@ -23,3 +23,6 @@ emails/
 # Uploaded media (except course thumbnails if needed, but avatars should be ignored)
 media/avatars/
 
+# Static files & SQLite DB
+staticfiles/
+db.sqlite3

@@ -74,24 +74,26 @@
       </div>
       {% if enrollments %}
         {% for enr in enrollments %}
-        <div class="d-flex align-items-center gap-3 mb-3 p-3 glass" style="border-radius:14px">
-          {% if enr.course.thumbnail %}
-            <img src="{{ enr.course.thumbnail.url }}" style="width:50px;height:50px;object-fit:cover;border-radius:12px;flex-shrink:0">
-          {% else %}
-            <div style="width:50px;height:50px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <i class="fas fa-book" style="color:#fff"></i>
-            </div>
-          {% endif %}
-          <div class="flex-grow-1 min-width-0">
-            <div style="font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ enr.course.title }}</div>
-            <div class="progress-glow mt-1"><div class="bar" style="width:{{ enr.completion_percent }}%"></div></div>
-            <div style="font-size:.75rem;color:var(--muted);margin-top:.25rem;display:flex;gap:.8rem">
-              <span>{{ enr.completion_percent }}% complete</span>
-              <span style="color:var(--accent2)"><i class="fas fa-clock me-1"></i>{{ enr.time_spent_display }}</span>
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-3 p-3 glass" style="border-radius:14px">
+          <div class="d-flex align-items-center gap-3 flex-grow-1 min-width-0">
+            {% if enr.course.thumbnail %}
+              <img src="{{ enr.course.thumbnail.url }}" style="width:50px;height:50px;object-fit:cover;border-radius:12px;flex-shrink:0">
+            {% else %}
+              <div style="width:50px;height:50px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="fas fa-book" style="color:#fff"></i>
+              </div>
+            {% endif %}
+            <div class="flex-grow-1 min-width-0">
+              <div style="font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ enr.course.title }}</div>
+              <div class="progress-glow mt-1"><div class="bar" style="width:{{ enr.completion_percent }}%"></div></div>
+              <div style="font-size:.75rem;color:var(--muted);margin-top:.25rem;display:flex;gap:.8rem;flex-wrap:wrap">
+                <span>{{ enr.completion_percent }}% complete</span>
+                <span style="color:var(--accent2)"><i class="fas fa-clock me-1"></i>{{ enr.time_spent_display }}</span>
+              </div>
             </div>
           </div>
           {% if enr.completion_percent >= 100 or enr.status == 'completed' %}
-            <div class="d-flex align-items-center gap-2" style="flex-shrink:0;">
+            <div class="d-flex align-items-center gap-2 flex-wrap" style="flex-shrink:0;">
               <a href="{% url 'certificate' enrollment_id=enr.id %}" class="btn btn-sm" style="background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.3);border-radius:8px;">
                 <i class="fas fa-certificate me-1"></i>Certificate
               </a>
@@ -101,7 +103,7 @@
               <a href="{% url 'course_detail' slug=enr.course.slug %}" class="btn-outline-glow btn btn-sm">Review</a>
             </div>
           {% else %}
-            <a href="{% url 'course_detail' slug=enr.course.slug %}" class="btn-primary-glow btn btn-sm" style="flex-shrink:0">Continue</a>
+            <a href="{% url 'course_detail' slug=enr.course.slug %}" class="btn-primary-glow btn btn-sm w-100 w-sm-auto text-center" style="flex-shrink:0">Continue</a>
           {% endif %}
         </div>
         {% endfor %}

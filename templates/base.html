@@ -499,10 +499,30 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { color: var(--accent2); }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: none; }
+    /* ── RESPONSIVE SIDEBAR BACKDROP ── */
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 1040;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-backdrop.active {
+      display: block;
+      opacity: 1;
+    }
+
+    @media (max-width: 991px) {
+      .sidebar {
+        transform: translateX(-100%);
+        z-index: 1050;
+        box-shadow: 0 0 40px rgba(0,0,0,0.8);
+      }
+      .sidebar.open { transform: translateX(0); }
       .main-content { margin-left: 0; padding: 1rem; }
     }
   </style>
@@ -604,6 +624,7 @@
 
   <!-- ── LAYOUT ── -->
   {% if request.user.is_authenticated %}
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
   <div class="d-flex">
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
@@ -738,14 +759,21 @@
 
     // Sidebar toggle
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('sidebarBackdrop');
+      if (sb) {
+        sb.classList.toggle('open');
+        if (bd) bd.classList.toggle('active', sb.classList.contains('open'));
+      }
     }
 
     // Close sidebar on outside click (mobile)
     document.addEventListener('click', e => {
       const sb = document.getElementById('sidebar');
-      if (sb && !sb.contains(e.target) && !e.target.closest('[onclick="toggleSidebar()"]')) {
+      const bd = document.getElementById('sidebarBackdrop');
+      if (sb && sb.classList.contains('open') && !sb.contains(e.target) && !e.target.closest('[onclick="toggleSidebar()"]')) {
         sb.classList.remove('open');
+        if (bd) bd.classList.remove('active');
       }
     });
 

@@ -238,7 +238,16 @@
     @media(max-width:940px){
       .cert-wrap{width:100%}
       .cert-header,.cert-body,.cert-footer{padding-left:1.5rem;padding-right:1.5rem}
-      .cert-name{font-size:2rem}
+      .cert-name{font-size:clamp(1.8rem, 5vw, 3.2rem)}
+      .cert-course{font-size:clamp(1.2rem, 3.5vw, 1.7rem)}
+    }
+    @media(max-width:576px){
+      body{padding:0.75rem}
+      .cert-header{padding:1.5rem 1rem 1rem}
+      .cert-body{padding:1.5rem 1rem}
+      .cert-footer{flex-direction:column;gap:0.4rem;text-align:center;padding:1rem}
+      .cert-sigs{flex-direction:column;align-items:center;gap:1.5rem}
+      .sig-block{max-width:200px}
     }
   </style>
 </head>
