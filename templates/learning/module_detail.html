@@ -1,5 +1,16 @@
 {% extends 'base.html' %}
 {% block title %}{{ module.title }} — AdaptLearn{% endblock %}
+{% block extra_css %}
+<style>
+  @media (min-width: 1200px) {
+    .module-sidebar-card { position: sticky; top: 84px; }
+  }
+  @media (max-width: 576px) {
+    .video-container iframe { height: 210px !important; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="mb-3" data-aos="fade-down">
   <a href="{% url 'course_detail' slug=module.course.slug %}" style="color:var(--muted);font-size:.88rem">← {{ module.course.title }}</a>
@@ -10,15 +21,15 @@
   <div class="col-xl-8">
     {% for mat in materials %}
       {% if not module.course.is_free or has_paid or mat.id == first_material_id %}
-      <div class="glass p-4 mb-3" style="border-radius:20px" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0" data-material-id="{{ mat.id }}">
-        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-          <div class="d-flex align-items-center gap-3">
+      <div class="glass p-3 p-sm-4 mb-3" style="border-radius:20px" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0" data-material-id="{{ mat.id }}">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
+          <div class="d-flex align-items-center gap-3 min-width-0">
             <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
               {% if mat.material_type == 'video' %}background:rgba(255,101,132,.15){% elif mat.material_type == 'pdf' %}background:rgba(0,212,255,.15){% else %}background:rgba(108,99,255,.15){% endif %}">
               <i class="fas {% if mat.material_type == 'video' %}fa-play{% elif mat.material_type == 'pdf' %}fa-file-pdf{% elif mat.material_type == 'quiz' %}fa-question{% else %}fa-file-alt{% endif %}"
                  style="{% if mat.material_type == 'video' %}color:var(--accent3){% elif mat.material_type == 'pdf' %}color:var(--accent2){% else %}color:var(--accent){% endif %}"></i>
             </div>
-            <div>
+            <div class="min-width-0">
               <h3 style="font-weight:700;font-size:1rem;margin:0">{{ mat.title }}</h3>
               <span style="font-size:.75rem;color:var(--muted)">{{ mat.get_material_type_display }} · {{ mat.duration_mins }} min</span>
             </div>
@@ -35,8 +46,8 @@
           {% endif %}
         </div>
         {% if mat.video_url %}
-        <div style="border-radius:12px;overflow:hidden;margin-bottom:.8rem">
-          <iframe src="{{ mat.video_url }}" style="width:100%;height:300px;border:none" allowfullscreen></iframe>
+        <div class="video-container" style="border-radius:12px;overflow:hidden;margin-bottom:.8rem">
+          <iframe src="{{ mat.video_url }}" style="width:100%;height:320px;border:none" allowfullscreen></iframe>
         </div>
         {% endif %}
         {% if mat.content %}
@@ -49,8 +60,8 @@
         {% endif %}
       </div>
       {% else %}
-      <div class="glass p-4 mb-3 text-center" style="border-radius:20px; border: 1px dashed rgba(255, 101, 132, 0.4); background: rgba(255, 101, 132, 0.02);" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
-        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+      <div class="glass p-3 p-sm-4 mb-3 text-center" style="border-radius:20px; border: 1px dashed rgba(255, 101, 132, 0.4); background: rgba(255, 101, 132, 0.02);" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}0">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
           <div class="d-flex align-items-center gap-3">
             <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(255,101,132,.15)">
               <i class="fas fa-lock" style="color:var(--accent3)"></i>
@@ -81,7 +92,7 @@
     {% endfor %}
   </div>
   <div class="col-xl-4">
-    <div class="glass p-4 sticky-top" style="top:84px;border-radius:20px">
+    <div class="glass p-3 p-sm-4 module-sidebar-card" style="border-radius:20px">
       <h3 style="font-weight:700;margin-bottom:1rem">Module Progress</h3>
       {% with total=materials|length %}
       {% with done=completed_ids|length %}

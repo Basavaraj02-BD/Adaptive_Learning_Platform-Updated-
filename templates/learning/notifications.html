@@ -4,7 +4,7 @@
 <div class="mb-4" data-aos="fade-down">
   <h1 style="font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800">🔔 <span class="gradient-text">Notifications</span></h1>
 </div>
-<div class="glass p-4" style="border-radius:24px">
+<div class="glass p-3 p-sm-4" style="border-radius:24px">
   {% for n in notifications %}
   <div class="d-flex align-items-start gap-3 p-3 mb-2 glass {% if not n.is_read %}border-start border-3{% endif %}"
        style="border-radius:14px;{% if not n.is_read %}border-color:var(--accent)!important{% endif %}">
@@ -13,9 +13,9 @@
       <i class="fas {% if n.notif_type == 'enrollment' %}fa-graduation-cap{% elif n.notif_type == 'result' %}fa-trophy{% elif n.notif_type == 'payment' %}fa-credit-card{% elif n.notif_type == 'achievement' %}fa-star{% else %}fa-bell{% endif %}"
          style="{% if n.notif_type == 'enrollment' %}color:var(--accent){% elif n.notif_type == 'result' %}color:var(--green){% elif n.notif_type == 'payment' %}color:var(--gold){% else %}color:var(--accent2){% endif %}"></i>
     </div>
-    <div class="flex-grow-1">
+    <div class="flex-grow-1 min-width-0">
       <div style="font-weight:600;margin-bottom:.2rem">{{ n.title }}</div>
-      <div style="font-size:.87rem;color:var(--muted)">{{ n.message }}</div>
+      <div style="font-size:.87rem;color:var(--muted);word-break:break-word">{{ n.message }}</div>
       <div style="font-size:.75rem;color:var(--muted);margin-top:.3rem">{{ n.created_at|timesince }} ago</div>
     </div>
     {% if not n.is_read %}

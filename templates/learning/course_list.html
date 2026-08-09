@@ -22,20 +22,20 @@
 
 <!-- Search & Filter -->
 <div class="glass p-3 mb-4 d-flex flex-wrap gap-3 align-items-center" data-aos="fade-up">
-  <form method="get" class="d-flex gap-2 flex-grow-1 flex-wrap">
+  <form method="get" class="d-flex gap-2 flex-grow-1 flex-wrap align-items-center">
     <input type="text" name="q" value="{{ search }}" placeholder="Search courses…"
-           class="glass-input flex-grow-1" style="min-width:200px;border-radius:12px"/>
-    <select name="difficulty" class="glass-input" style="width:160px;border-radius:12px">
+           class="glass-input flex-grow-1" style="min-width:180px;border-radius:12px"/>
+    <select name="difficulty" class="glass-input flex-grow-1 flex-sm-grow-0" style="min-width:140px;border-radius:12px">
       <option value="">All Levels</option>
       <option value="beginner"      {% if difficulty == 'beginner'      %}selected{% endif %}>Beginner</option>
       <option value="intermediate"  {% if difficulty == 'intermediate'  %}selected{% endif %}>Intermediate</option>
       <option value="advanced"      {% if difficulty == 'advanced'      %}selected{% endif %}>Advanced</option>
     </select>
-    <button type="submit" class="btn-primary-glow btn">
+    <button type="submit" class="btn-primary-glow btn flex-grow-1 flex-sm-grow-0 text-center">
       <i class="fas fa-search me-2"></i>Search
     </button>
     {% if search or difficulty %}
-    <a href="{% url 'course_list' %}" class="btn-outline-glow btn">Clear</a>
+    <a href="{% url 'course_list' %}" class="btn-outline-glow btn flex-grow-1 flex-sm-grow-0 text-center">Clear</a>
     {% endif %}
   </form>
 </div>

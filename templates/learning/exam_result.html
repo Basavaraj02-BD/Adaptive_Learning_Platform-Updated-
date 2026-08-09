@@ -98,8 +98,8 @@
   {% endfor %}
 </div>
 
-<div class="text-center mt-4 d-flex justify-content-center gap-3" data-aos="fade-up">
-  <a href="{% url 'exam_list' %}" class="btn-outline-glow btn">← Back to Exams</a>
-  <a href="{% url 'dashboard' %}" class="btn-primary-glow btn">Dashboard</a>
+<div class="text-center mt-4 d-flex flex-column flex-sm-row justify-content-center gap-3" data-aos="fade-up">
+  <a href="{% url 'exam_list' %}" class="btn-outline-glow btn text-center">← Back to Exams</a>
+  <a href="{% url 'dashboard' %}" class="btn-primary-glow btn text-center">Dashboard</a>
 </div>
 {% endblock %}

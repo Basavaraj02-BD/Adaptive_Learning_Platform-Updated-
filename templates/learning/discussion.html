@@ -15,6 +15,13 @@
     border-radius: 0 12px 12px 0; padding: .85rem 1rem;
     margin-left: 2.5rem; margin-top: .5rem;
   }
+  @media (min-width: 1200px) {
+    .forum-sidebar-card { position: sticky; top: 84px; }
+  }
+  @media (max-width: 576px) {
+    .reply-card { margin-left: 0.75rem; }
+    .thread-card { padding: 0.9rem; }
+  }
 </style>
 {% endblock %}
 
@@ -104,7 +111,7 @@
 
   <!-- Sidebar -->
   <div class="col-xl-4">
-    <div class="glass p-4 sticky-top" style="top:84px;border-radius:20px" data-aos="fade-left">
+    <div class="glass p-3 p-sm-4 forum-sidebar-card" style="border-radius:20px" data-aos="fade-left">
       <h3 class="section-title">📌 Guidelines</h3>
       <div class="d-flex flex-column gap-2" style="font-size:.85rem;color:var(--muted)">
         <div><i class="fas fa-check me-2" style="color:var(--green)"></i>Be respectful and helpful</div>
