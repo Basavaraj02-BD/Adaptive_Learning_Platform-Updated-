@@ -420,7 +420,9 @@
       padding: .85rem 1.2rem;
       font-size: .9rem;
       animation: slideIn .3s ease;
-      min-width: 300px;
+      min-width: min(300px, 88vw);
+      max-width: calc(100vw - 2rem);
+      word-break: break-word;
     }
     .toast-msg.success { border-left: 4px solid var(--green); }
     .toast-msg.error   { border-left: 4px solid var(--accent3); }
