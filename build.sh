@@ -12,7 +12,9 @@ echo "Running migrations..."
 python manage.py migrate
 
 echo "Seeding demo courses..."
-python manage.py seed_courses
+python manage.py seed_courses || echo "WARNING: seed_courses failed or already seeded, continuing..."
 
 echo "Seeding exam questions..."
-python manage.py seed_exam_questions
+python manage.py seed_exam_questions || echo "WARNING: seed_exam_questions failed or already seeded, continuing..."
+
+echo "Build complete!"

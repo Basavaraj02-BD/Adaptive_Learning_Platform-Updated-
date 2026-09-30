@@ -120,16 +120,17 @@ ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY', 'ADAPTIVE_ADMIN_2024')
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
 
-# Email Backend for Password Reset (outputs to console during development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@adaptlearn.com'
+# Email Configuration
+# Uses SMTP in production (when EMAIL_HOST_USER env var is set), console backend otherwise
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 
-# Real SMTP Configuration (for Production)
-# To send real emails, uncomment the lines below and replace placeholders with your actual SMTP credentials.
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'          # Your SMTP provider host
-EMAIL_PORT = 587                        # SMTP port (usually 587 for TLS)
-EMAIL_USE_TLS = True                    # Secure connection
-EMAIL_HOST_USER = 'basavarajdhawale@gmail.com' # Your email address
-EMAIL_HOST_PASSWORD = 'osvb bjds ntwn akmg' # Your email account/app password
-DEFAULT_FROM_EMAIL = 'AdaptLearn <noreply@adaptlearn.com>'
+if EMAIL_HOST_USER:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+    DEFAULT_FROM_EMAIL = f'AdaptLearn <{EMAIL_HOST_USER}>'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@adaptlearn.com'
