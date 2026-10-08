@@ -102,7 +102,7 @@ python manage.py humanize_existing_courses
 python manage.py runserver
 ```
 
-Visit: **http://127.0.0.1:8000/**
+Visit: **https://adaptive-learning-platform-e2nd.onrender.com/**
 
 ---
 
