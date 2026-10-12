@@ -1743,7 +1743,7 @@ def google_callback(request):
             }
         )
 
-        login(request, user)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         if created:
             send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
                               'system')
@@ -1841,7 +1841,7 @@ def google_callback_js(request):
             }
         )
 
-        login(request, user)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         if created:
             send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
                               'system')
@@ -1925,7 +1925,7 @@ def google_simulator(request):
             }
         )
 
-        login(request, user)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         if created:
             send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
                               'system')
