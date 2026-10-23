@@ -752,6 +752,16 @@
         <div class="google-mock-spinner"></div>
         <p>Verifying with Google...</p>
       </div>
+
+      <!-- Role mismatch / error message -->
+      <div id="mockErrorBox"
+           style="display:none;align-items:flex-start;gap:.65rem;margin-top:1rem;
+                  background:rgba(255,101,132,.12);border:1px solid rgba(255,101,132,.35);
+                  border-radius:12px;padding:.85rem 1rem;color:#ff6584;font-size:.84rem;
+                  line-height:1.5;">
+        <i class="fas fa-exclamation-circle" style="margin-top:2px;flex-shrink:0"></i>
+        <span></span>
+      </div>
     </div>
   </div>
 
@@ -856,6 +866,21 @@
 
     function closeGoogleMockModal() {
         document.getElementById("googleMockModal").classList.remove("active");
+        const err = document.getElementById('mockErrorBox');
+        if (err) { err.style.display = 'none'; }
+    }
+
+    function showMockError(msg) {
+        let err = document.getElementById('mockErrorBox');
+        if (!err) return;
+        let span = err.querySelector('span');
+        if (span) {
+            span.textContent = msg;
+        } else {
+            err.innerHTML = `<i class="fas fa-exclamation-circle" style="margin-top:2px;flex-shrink:0"></i><span>${msg}</span>`;
+        }
+        err.style.display = 'flex';
+        err.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function submitMockGoogleLogin(email, firstName, lastName) {
@@ -884,14 +909,14 @@
             if (data.success) {
                 window.location.href = data.redirect_url;
             } else {
-                alert(data.message || 'Mock login failed');
-                loadingDiv.classList.remove("active");
+                loadingDiv.classList.remove('active');
+                showMockError(data.message || 'Sign-in failed. Please try again.');
             }
         })
         .catch(err => {
             console.error('Error during mock Google sign in:', err);
-            alert('Mock login request failed.');
-            loadingDiv.classList.remove("active");
+            loadingDiv.classList.remove('active');
+            showMockError('Connection error. Please try again.');
         });
     }
 

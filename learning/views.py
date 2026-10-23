@@ -1743,6 +1743,20 @@ def google_callback(request):
             }
         )
 
+        # ── Option C: Role-mismatch check ──────────────────────────────
+        # Block login if user is already registered under a different role.
+        # Admin accounts are always allowed through regardless of the button clicked.
+        if not created and not p_created and profile.role != role and profile.role != 'admin':
+            registered_role = profile.get_role_display()
+            requested_role  = 'Instructor' if role == 'instructor' else 'Student'
+            messages.error(
+                request,
+                f'This Google account is already registered as a {registered_role}. '
+                f'Please use the "{registered_role}" sign-in button instead of "{requested_role}".'
+            )
+            return redirect('user_login')
+        # ───────────────────────────────────────────────────────────────
+
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         if created:
             send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
@@ -1841,6 +1855,21 @@ def google_callback_js(request):
             }
         )
 
+        # ── Option C: Role-mismatch check ──────────────────────────────
+        if not created and not p_created and profile.role != role and profile.role != 'admin':
+            registered_role = profile.get_role_display()
+            requested_role  = 'Instructor' if role == 'instructor' else 'Student'
+            return JsonResponse({
+                'success': False,
+                'message': (
+                    f'This Google account is already registered as a {registered_role}. '
+                    f'Please use the "{registered_role}" sign-in button instead of "{requested_role}".'
+                ),
+                'role_mismatch': True,
+                'registered_role': profile.role,
+            }, status=403)
+        # ───────────────────────────────────────────────────────────────
+
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         if created:
             send_notification(user, 'Welcome! 🎉', f'Welcome to AdaptLearn, {user.first_name}! Registered via Google.',
@@ -1924,6 +1953,25 @@ def google_simulator(request):
                 'bio': 'Signed up via Google Login Simulator.',
             }
         )
+
+        # ── Option C: Role-mismatch check ──────────────────────────────
+        if not created and not p_created and profile.role != role and profile.role != 'admin':
+            registered_role = profile.get_role_display()
+            requested_role  = 'Instructor' if role == 'instructor' else 'Student'
+            mismatch_msg = (
+                f'This Google account is already registered as a {registered_role}. '
+                f'Please use the "{registered_role}" sign-in button instead of "{requested_role}".'
+            )
+            if is_ajax:
+                return JsonResponse({
+                    'success': False,
+                    'message': mismatch_msg,
+                    'role_mismatch': True,
+                    'registered_role': profile.role,
+                }, status=403)
+            messages.error(request, mismatch_msg)
+            return redirect('user_login')
+        # ───────────────────────────────────────────────────────────────
 
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         if created:
