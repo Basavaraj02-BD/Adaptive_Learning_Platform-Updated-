@@ -11,7 +11,18 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-adaptive-learning-platform
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '*').split(',') if host.strip()]
+
+csrf_trusted = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_trusted.split(',') if origin.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://*.vercel.app',
+        'https://*.onrender.com',
+        'http://127.0.0.1:8000',
+        'http://localhost:8000',
+    ]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
