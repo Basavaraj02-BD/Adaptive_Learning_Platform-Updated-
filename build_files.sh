@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 echo "Building project on Vercel..."
 
-# Install dependencies
-python3 -m pip install -r requirements.txt
+# Install dependencies with --break-system-packages for modern Vercel/uv Linux containers
+python3 -m pip install -r requirements.txt --break-system-packages || python3 -m pip install -r requirements.txt
+
+# Ensure output directory exists
+mkdir -p staticfiles
 
 # Collect static files into STATIC_ROOT (staticfiles)
 python3 manage.py collectstatic --no-input --clear
