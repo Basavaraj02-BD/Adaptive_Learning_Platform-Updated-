@@ -102,7 +102,7 @@ python manage.py humanize_existing_courses
 python manage.py runserver
 ```
 
-Visit: **https://adaptive-learning-platform-e2nd.onrender.com/**
+Visit: **https://adaptive-learning-platform-updated-b9m1-ayz29dfkg.vercel.app/**
 
 ---
 
