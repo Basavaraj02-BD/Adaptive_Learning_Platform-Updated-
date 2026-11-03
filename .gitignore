@@ -25,6 +25,7 @@ media/avatars/
 
 # Static files & SQLite DB
 staticfiles/
+staticfiles_build/
 db.sqlite3
 
 # Vercel

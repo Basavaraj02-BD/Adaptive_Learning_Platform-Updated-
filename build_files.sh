@@ -5,9 +5,9 @@ echo "Building project on Vercel..."
 python3 -m pip install -r requirements.txt --break-system-packages || python3 -m pip install -r requirements.txt
 
 # Ensure output directory exists
-mkdir -p staticfiles
+mkdir -p staticfiles_build/static
 
-# Collect static files into STATIC_ROOT (staticfiles)
+# Collect static files into STATIC_ROOT (staticfiles_build/static)
 python3 manage.py collectstatic --no-input --clear
 
 # Run database migrations if DATABASE_URL is configured
